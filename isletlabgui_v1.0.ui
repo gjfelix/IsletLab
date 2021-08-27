@@ -48,7 +48,7 @@
      <string extracomment="Settings tab"/>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="reconstructing_tab">
      <attribute name="title">
@@ -151,13 +151,13 @@
       <property name="geometry">
        <rect>
         <x>8</x>
-        <y>300</y>
+        <y>329</y>
         <width>321</width>
-        <height>390</height>
+        <height>361</height>
        </rect>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_initial_islet_stats">
        <attribute name="title">
@@ -1894,7 +1894,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
