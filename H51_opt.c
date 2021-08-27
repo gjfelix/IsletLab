@@ -65,7 +65,7 @@ int condicion2 = 0;
 void cargarArchivo() {
 	FILE *fp;
 	int numcelula = 0;
-fp = fopen("/home/gerardo/Documents/PyQt5 Tutorials/H51.txt", "r");
+fp = fopen("/Users/gjfelix/Documents/IsletLab/H51.txt", "r");
 	//fp = fopen("testData.txt", "r");
 	char linea[1000000];
 	while (fgets(linea, sizeof(linea), fp)) {
@@ -271,7 +271,7 @@ void moverRadioNucleo() {
 void guardarArchivoFinal(double radiosCelulasFinal[numCells],
 		double color[numCells]) {
 	int i, j;
-FILE *archivoSalida = fopen("/home/gerardo/Documents/PyQt5 Tutorials/H51_reconstructed.txt", "w");
+FILE *archivoSalida = fopen("/Users/gjfelix/Documents/IsletLab/H51_reconstructed.txt", "w");
 	for (j = 0; j < numCells; ++j) {
 		fprintf(archivoSalida, "%lf\t%lf\t", radiosCelulasFinal[j], color[j]);
 		for (i = 0; i < 4; ++i) {
@@ -285,7 +285,7 @@ FILE *archivoSalida = fopen("/home/gerardo/Documents/PyQt5 Tutorials/H51_reconst
 void guardarArchivoInicial(double radiosCelulas[numCells],
 		double color[numCells]) {
 	int i, j;
-FILE *archivoSalida = fopen("/home/gerardo/Documents/PyQt5 Tutorials/H51_initial.txt", "w");
+FILE *archivoSalida = fopen("/Users/gjfelix/Documents/IsletLab/H51_initial.txt", "w");
 	for (j = 0; j < numCells; ++j) {
 		fprintf(archivoSalida, "%lf\t%lf\t", radiosCelulas[j], color[j]);
 		for (i = 0; i < 4; ++i) {
@@ -384,7 +384,7 @@ double StopTolerance = 0.005;
 	int j;
 	double temp;
 	double E;
-FILE *archivoLog = fopen("/home/gerardo/Documents/PyQt5 Tutorials/H51_process_log.txt", "w");
+FILE *archivoLog = fopen("/Users/gjfelix/Documents/IsletLab/H51_process_log.txt", "w");
 	fprintf(archivoLog, "%-9s\t%-10s\t%-10s\t%-10s\t%-4s\t%-4s\t%s\n", "temp", "E", "minE", "maxE", "AcceptN", "TrialN","Time");
 
 	omp_init_lock(&c_e); //el candado queda abierto por default
