@@ -59,9 +59,14 @@ class Sphere(Shape):
 
 if __name__ == '__main__' :
 
-  from mpl_toolkits.mplot3d import Axes3D
-
-  import matplotlib.pyplot as plt
+  
+  if sys_pf == 'darwin':
+    import matplotlib.pyplot as plt
+    matplotlib.use("Qt5Agg")
+    from mpl_toolkits.mplot3d import Axes3D
+  else:
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
 
   fig = plt.figure()
   ax = Axes3D(fig)

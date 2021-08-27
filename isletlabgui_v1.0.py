@@ -9,12 +9,22 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
 import re
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-import matplotlib.pyplot as plt
+
 from shape import Shape
 from sphere import Sphere
-from mpl_toolkits.mplot3d import Axes3D
+from sys import platform as sys_pf
+if sys_pf == 'darwin':
+    import matplotlib
+    matplotlib.use("Qt5Agg")
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
+    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+else:
+    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
 
 class Ui_MainWindow(object):
 
@@ -651,12 +661,17 @@ class Ui_MainWindow(object):
         self.actionLoad_data = QtWidgets.QAction(MainWindow)
         self.actionLoad_data.setWhatsThis("")
         self.actionLoad_data.setObjectName("actionLoad_data")
+        self.actionRestart = QtWidgets.QAction(MainWindow)
+        self.actionRestart.setWhatsThis("")
+        self.actionRestart.triggered.connect(self.restart)
+        self.actionLoad_data.setObjectName("actionRestart")
         self.actionSimulation = QtWidgets.QAction(MainWindow)
         self.actionSimulation.setObjectName("actionSimulation")
         self.actionGraphs = QtWidgets.QAction(MainWindow)
         self.actionGraphs.setObjectName("actionGraphs")
         self.menuFile.addAction(self.actionExport_data)
         self.menuFile.addAction(self.actionLoad_data)
+        self.menuFile.addAction(self.actionRestart)
         self.menuSettings.addAction(self.actionReconstruction)
         self.menuSettings.addAction(self.actionSimulation)
         self.menuHelp.addAction(self.actionAbout)
@@ -817,6 +832,7 @@ class Ui_MainWindow(object):
         self.actionReconstruction.setText(_translate("MainWindow", "Reconstruction"))
         self.actionContacts.setText(_translate("MainWindow", "Contacts"))
         self.actionLoad_data.setText(_translate("MainWindow", "Load data"))
+        self.actionRestart.setText(_translate("MainWindow", "Restart"))
         self.actionSimulation.setText(_translate("MainWindow", "Simulation"))
         self.actionGraphs.setText(_translate("MainWindow", "Graphs"))
 
@@ -842,6 +858,7 @@ class Ui_MainWindow(object):
                 self.plot_initial_islet()
                 # se genera la estadistica
                 self.initial_islet_stats()
+                self.load_islet_button.setEnabled(False)
 
             except: 
                 self.load_islet_status_label.setText("Error loading islet file")
@@ -1017,6 +1034,11 @@ class Ui_MainWindow(object):
 
             self.reconstruction_status_label.setText("Error during the optimization configuration")
             self.reconstruction_status_label.setStyleSheet("color: Red")
+
+    def restart(self):
+        QtCore.QCoreApplication.quit()
+        status = QtCore.QProcess.startDetached(sys.executable, sys.argv)
+        print(status)
 
 
         
