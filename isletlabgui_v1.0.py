@@ -9,6 +9,8 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
 import re
+from ProgressBar import ProgressBar
+import sys, time
 
 from shape import Shape
 from sphere import Sphere
@@ -94,27 +96,39 @@ class Ui_MainWindow(object):
         self.reconstruct_button = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.reconstruct_button.setObjectName("reconstruct_button")
         self.MainVerticalLayout_Settings.addWidget(self.reconstruct_button)
+        self.reconstruct_button.setEnabled(False)
         self.reconstruct_button.clicked.connect(self.optimizeIslet)
 
 
         self.reconstruction_status_label = QtWidgets.QLabel(self.verticalLayoutWidget)
         self.reconstruction_status_label.setAlignment(QtCore.Qt.AlignCenter)
         self.reconstruction_status_label.setObjectName("reconstruction_status_label")
+        self.reconstruction_status_label.setEnabled(False)
         self.MainVerticalLayout_Settings.addWidget(self.reconstruction_status_label)
+
+
         self.contacts_button = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.contacts_button.setObjectName("contacts_button")
         self.MainVerticalLayout_Settings.addWidget(self.contacts_button)
+        self.contacts_button.setEnabled(False)
+
         self.contacts_status_label = QtWidgets.QLabel(self.verticalLayoutWidget)
         self.contacts_status_label.setAlignment(QtCore.Qt.AlignCenter)
         self.contacts_status_label.setObjectName("contacts_status_label")
+        self.contacts_status_label.setEnabled(False)
         self.MainVerticalLayout_Settings.addWidget(self.contacts_status_label)
+
         self.network_button = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.network_button.setObjectName("network_button")
         self.MainVerticalLayout_Settings.addWidget(self.network_button)
+        self.network_button.setEnabled(False)
+
         self.network_status_button = QtWidgets.QLabel(self.verticalLayoutWidget)
         self.network_status_button.setAlignment(QtCore.Qt.AlignCenter)
         self.network_status_button.setObjectName("network_status_button")
+        self.network_status_button.setEnabled(False)
         self.MainVerticalLayout_Settings.addWidget(self.network_status_button)
+
         self.tabWidget_islet_stats = QtWidgets.QTabWidget(self.reconstructing_tab)
         self.tabWidget_islet_stats.setGeometry(QtCore.QRect(8, 329, 321, 390))
         self.tabWidget_islet_stats.setObjectName("tabWidget_islet_stats")
@@ -681,9 +695,24 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabWidget_settings.setCurrentIndex(0)
-        self.tabWidget_islet_stats.setCurrentIndex(0)
-        self.tabWidget_Plots.setCurrentIndex(0)
+        #self.tabWidget_settings.setCurrentIndex(0)
+        self.tabWidget_settings.setTabEnabled(1, False)
+        self.tabWidget_settings.setTabEnabled(2, False)
+        self.tabWidget_settings.setTabEnabled(3, False)
+
+
+        #self.tabWidget_islet_stats.setCurrentIndex(0)
+        self.tabWidget_islet_stats.setTabEnabled(0, False)
+        self.tabWidget_islet_stats.setTabEnabled(1, False)
+        self.tabWidget_islet_stats.setTabEnabled(2, False)
+        self.tabWidget_islet_stats.setTabEnabled(3, False)
+        
+        
+        #self.tabWidget_Plots.setCurrentIndex(0)
+        self.tabWidget_Plots.setTabEnabled(0, False)
+        self.tabWidget_Plots.setTabEnabled(1, False)
+        self.tabWidget_Plots.setTabEnabled(2, False)
+        self.tabWidget_Plots.setTabEnabled(3, False)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -859,7 +888,10 @@ class Ui_MainWindow(object):
                 # se genera la estadistica
                 self.initial_islet_stats()
                 self.load_islet_button.setEnabled(False)
-
+                self.reconstruction_status_label.setEnabled(True)
+                self.reconstruct_button.setEnabled(True)
+                self.tabWidget_islet_stats.setTabEnabled(0, True)
+                self.tabWidget_Plots.setTabEnabled(0, True)
             except: 
                 self.load_islet_status_label.setText("Error loading islet file")
                 self.load_islet_status_label.setStyleSheet("color: Red")
@@ -1028,7 +1060,19 @@ class Ui_MainWindow(object):
 
             self.reconstruction_status_label.setText("Optimization was configured succesfully")
             self.reconstruction_status_label.setStyleSheet("color: Green")
+            self.reconstruction_status_label.setEnabled(True)
+            self.reconstruct_button.setEnabled(False)
+            self.contacts_button.setEnabled(True)
+            self.contacts_status_label.setEnabled(True)
 
+
+            pb = ProgressBar()
+            for i in range(0, 100):
+                time.sleep(0.05)
+                pb.setValue(((i + 1) / 100) * 100)
+                QtWidgets.QApplication.processEvents()
+
+            pb.close()
         
         except:
 
