@@ -12,7 +12,8 @@ import re
 from ProgressBar import ProgressBar
 import sys, time
 import subprocess
-import _thread
+#import _thread
+import threading
 
 from shape import Shape
 from sphere import Sphere
@@ -1083,7 +1084,10 @@ class Ui_MainWindow(object):
         
 
         try:
-            subprocess.run(["gcc", fout , "-o", fout[:-2], "-lm", "-fopenmp"])
+            if sys_pf == 'darwin':
+                subprocess.run(["gcc-10", fout , "-o", fout[:-2], "-lm", "-fopenmp"])
+            else:
+                subprocess.run(["gcc", fout , "-o", fout[:-2], "-lm", "-fopenmp"])
             self.reconstruction_status_label.setText("Compilation success")
             self.reconstruction_status_label.setStyleSheet("color: Green")
         except:
@@ -1092,6 +1096,8 @@ class Ui_MainWindow(object):
 
         #time.sleep(1)
 
+        
+        
         try:
             # self.progress_indicator = QtWidgets.QProgressDialog()
             # self.progress_indicator.setWindowModality(QtCore.Qt.WindowModal)
@@ -1101,10 +1107,16 @@ class Ui_MainWindow(object):
             # self.progress_indicator.show()
             #_thread.start_new_thread(self.run_code, (self.message_obj, fout))
 
-            subprocess.run([fout[:-2]])
-            progressbar = ProgressBar(n, title = "Copying files...")
+            #subprocess.run([fout[:-2]])
+            #progressbar = ProgressBar(n, title = "Copying files...")
             #if progressbar.wasCanceled():
             #    break
+
+            self.run_code(fout)
+            #t = threading.Thread(target=self.run_code, args=(fout,))
+            #t.start()
+            #while t.is_alive():
+            #    pass
 
             self.reconstruction_status_label.setText("Optimization completed")
             self.reconstruction_status_label.setStyleSheet("color: Green")
@@ -1113,14 +1125,11 @@ class Ui_MainWindow(object):
             self.contacts_status_label.setEnabled(True)
             self.tabWidget_settings.setTabEnabled(1, False)
             
-
-            #self.tabWidget_islet_stats.setCurrentIndex(0)
             self.tabWidget_islet_stats.setTabEnabled(1, True)
-            
-            
-            
-            
+            self.tabWidget_islet_stats.setCurrentIndex(1)
+        
             self.tabWidget_Plots.setTabEnabled(1, True)
+            self.tabWidget_Plots.setCurrentIndex(1)
             
         except Exception as e:
             #print(fout[:-2])
@@ -1138,28 +1147,19 @@ class Ui_MainWindow(object):
             #pb.close()
         
     
-    def run_code(self, obj, fout):
-        subprocess.run([fout[:-2]])
-        obj.finished.emit()
+    def run_code(self, fout):
+        self.reconstruction_status_label.setText("Optimization in progress")
+        self.reconstruction_status_label.setStyleSheet("color: Yellow")
+        #subprocess.run([fout[:-2]])
+        #p = subprocess.Popen([fout[:-2]])
+        #p.wait()
+        subprocess.check_call([fout[:-2]])
 
     def restart(self):
         QtCore.QCoreApplication.quit()
         status = QtCore.QProcess.startDetached(sys.executable, sys.argv)
         print(status)
-
-
-class ProgressBar(QtWidgets.QProgressDialog):
-    def __init__(self, max, title):
-        super().__init__()
-        self.setMinimumDuration(0) # Sets how long the loop should last before progress bar is shown (in miliseconds)
-        self.setWindowTitle(title)
-        self.setModal(True)
-
-        self.setValue(0)
-        self.setMinimum(0)
-        self.setMaximum(max)
-
-        self.show()
+        
 
 
 
