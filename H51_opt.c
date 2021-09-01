@@ -371,8 +371,8 @@ void celcolor(double islote[numCells][4], double col[numCells]) {
 int main(void) {
 	time_t begin = time(NULL);
 	srand(time(NULL));
-int MaxTrialN = numCells * 10;
-int MaxAcceptN = numCells * 5;
+int MaxTrialN = numCells * 2;
+int MaxAcceptN = numCells * 1;
 double StopTolerance = 0.005;
 	double TempRatio = 0.5;
 	double minE = INFINITY;
@@ -503,7 +503,7 @@ FILE *archivoLog = fopen("/home/gerardo/Documents/IsletLab/H51_process_log.txt",
 //	dEmax = maxdE(E, 50, radiosCelulas, isloteinicial,distNucMatriz, sumaRadiosMatriz);
 //	temp = (double)(dEmax*10);
 //	printf("dEmax = %d, Temperatura inicial = %f\n", dEmax, temp);
-temp = 10.0;
+temp = 5.0;
 	//fprintf(archivoLog, "%s\t%s\t%s\t%s\t%s\t%s\n", "Temp", "E", "minE", "maxE",
 	//		"AcceptN", "TrialN");
 

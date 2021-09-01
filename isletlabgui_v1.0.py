@@ -1140,6 +1140,7 @@ class Ui_MainWindow(object):
                 self.final_islet_data = np.loadtxt(self.current_islet_file[:-4]+'_reconstructed.txt')
                 self.plot_reconstructed_islet()
                 self.reconstructed_islet_stats(self.final_islet_data)
+                self.processar_output_stats()
 
                 
         except Exception as e:
@@ -1253,9 +1254,8 @@ class Ui_MainWindow(object):
         self.fin_deltacells_value.setText(str(ndeltas))
         self.fin_deltacells_perc.setText(str(perc_deltas)+ " %")
         self.calculate_volumes(finalisletdata)
-        #print("nalfas = " + str(nalphas) +" "+ str(perc_alphas))
-        #print("nbetas = " + str(nbetas) +" "+ str(perc_betas))
-        #print("ndeltas = " + str(ndeltas) +" "+ str(perc_deltas))
+        self.calculate_opt_stats(finalisletdata)
+        
 
 
     def restart(self):
@@ -1271,7 +1271,7 @@ class Ui_MainWindow(object):
         volcells = 4./3.*np.pi*finalisletdata[:,0]
         totalvol = np.sum(volcells)
         self.fin_total_vol_value.setText('{:.1e}'.format(Decimal(totalvol)))
-        self.fin_total_vol_perc.setText('100.00 %')
+        self.fin_total_vol_perc.setText('100.0 %')
         volalfas = np.sum(volcells[ind_alfas])
         self.fin_alpha_vol_value.setText('{:.1e}'.format(Decimal(volalfas)))
         self.fin_alpha_vol_perc.setText(str(np.round(volalfas*100./totalvol,2))+' %')
@@ -1281,6 +1281,21 @@ class Ui_MainWindow(object):
         voldeltas = np.sum(volcells[ind_deltas])
         self.fin_delta_vol_value.setText('{:.1e}'.format(Decimal(voldeltas)))
         self.fin_delta_vol_perc.setText(str(np.round(voldeltas*100./totalvol,2))+' %')
+
+
+    def calculate_opt_stats(self, finalisletdata):
+        ncells_opt = len(finalisletdata)
+        ncells_exp = len(self.exp_islet_data)
+        perc_of_exp = ncells_opt/ncells_exp * 100.
+        self.perc_of_total_value.setText(str(np.round(perc_of_exp,2)))
+        noverlaps = ncells_exp - ncells_opt
+        self.n_overlaps_value.setText(str(noverlaps))
+
+    def processar_output_stats(self):
+        process_out_file = self.current_islet_file[:-4]+"_process_log.txt"
+        processdata = np.loadtxt(process_out_file, skiprows=1, usecols=(0,1,2,3,4,5))
+        self.total_iter_value.setText = str(np.sum(processdata[:,5]))
+        self.acc_iter_value.setText = str(np.sum(processdata[:,4]))
 
 
 
