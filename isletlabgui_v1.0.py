@@ -13,7 +13,8 @@ from ProgressBar import ProgressBar
 import sys, time
 import subprocess
 #import _thread
-import threading
+#import threading
+from decimal import Decimal
 
 from shape import Shape
 from sphere import Sphere
@@ -52,6 +53,7 @@ class Ui_MainWindow(object):
         MainWindow.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
         
 
+        
         # Para agregar figuras en pestañas
         self.canvases = []
         self.figure_handles = []
@@ -67,7 +69,7 @@ class Ui_MainWindow(object):
         self.threads = 16
         self.contacttol = 1.0
 
-        self.message_obj = Message()
+        #self.message_obj = Message()
 
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -1097,7 +1099,6 @@ class Ui_MainWindow(object):
         #time.sleep(1)
 
         
-        
         try:
             # self.progress_indicator = QtWidgets.QProgressDialog()
             # self.progress_indicator.setWindowModality(QtCore.Qt.WindowModal)
@@ -1111,26 +1112,36 @@ class Ui_MainWindow(object):
             #progressbar = ProgressBar(n, title = "Copying files...")
             #if progressbar.wasCanceled():
             #    break
-
-            self.run_code(fout)
+            self.reconstruction_status_label.setText("Optimization in progress")
+            self.reconstruction_status_label.setStyleSheet("color: Green")
+            optstatus = self.launch_opt_window(fout)
+            print("Checo estatus: " + str(optstatus))
             #t = threading.Thread(target=self.run_code, args=(fout,))
             #t.start()
             #while t.is_alive():
             #    pass
+            if optstatus == 0:
+                self.reconstruction_status_label.setText("Reconstruction aborted")
+                self.reconstruction_status_label.setStyleSheet("color: Red")
+            elif optstatus == 2:
+                self.reconstruction_status_label.setText("Optimization completed")
+                self.reconstruction_status_label.setStyleSheet("color: Green")
+                self.reconstruct_button.setEnabled(False)
+                self.contacts_button.setEnabled(True)
+                self.contacts_status_label.setEnabled(True)
+                self.tabWidget_settings.setTabEnabled(1, False)
+                
+                self.tabWidget_islet_stats.setTabEnabled(1, True)
+                self.tabWidget_islet_stats.setCurrentIndex(1)
+            
+                self.tabWidget_Plots.setTabEnabled(1, True)
+                self.tabWidget_Plots.setCurrentIndex(1)
 
-            self.reconstruction_status_label.setText("Optimization completed")
-            self.reconstruction_status_label.setStyleSheet("color: Green")
-            self.reconstruct_button.setEnabled(False)
-            self.contacts_button.setEnabled(True)
-            self.contacts_status_label.setEnabled(True)
-            self.tabWidget_settings.setTabEnabled(1, False)
-            
-            self.tabWidget_islet_stats.setTabEnabled(1, True)
-            self.tabWidget_islet_stats.setCurrentIndex(1)
-        
-            self.tabWidget_Plots.setTabEnabled(1, True)
-            self.tabWidget_Plots.setCurrentIndex(1)
-            
+                self.final_islet_data = np.loadtxt(self.current_islet_file[:-4]+'_reconstructed.txt')
+                self.plot_reconstructed_islet()
+                self.reconstructed_islet_stats(self.final_islet_data)
+
+                
         except Exception as e:
             #print(fout[:-2])
             print(e)
@@ -1146,21 +1157,213 @@ class Ui_MainWindow(object):
 
             #pb.close()
         
+
     
-    def run_code(self, fout):
-        self.reconstruction_status_label.setText("Optimization in progress")
-        self.reconstruction_status_label.setStyleSheet("color: Yellow")
+
+    def launch_opt_window(self, fout):
         #subprocess.run([fout[:-2]])
         #p = subprocess.Popen([fout[:-2]])
         #p.wait()
-        subprocess.check_call([fout[:-2]])
+        Dialog = QtWidgets.QDialog()
+        ui = Ui_OptLog_Dialog()
+        ui.setupUi(Dialog, fout)
+        Dialog.exec_()
+        return ui.optstatus
+        #subprocess.check_call([fout[:-2]])
+        
+    
+    ## funcion que grafica islote inicial
+    def plot_reconstructed_islet(self):
+        #new_tab = QWidget()
+        layout = QtWidgets.QVBoxLayout()
+        self.final_islet_plot_tab.setLayout(layout)
+
+        figure = plt.figure()
+        figure.subplots_adjust(left=0.1, right=0.99, bottom=0.05, top=1.0, wspace=0.2, hspace=0.2)
+        new_canvas = FigureCanvas(figure)
+        new_canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
+        new_canvas.setFocus()
+        
+        ax = Axes3D(figure)
+        ax.view_init(elev = -80., azim = 90)
+        plt.xlabel('x')
+        plt.ylabel('y')
+        #ax.set_xlim(-10, 10)
+        #ax.set_ylim(-10, 10)
+        #ax.set_zlim(-10, 10)
+        #ax.set_zlabel('z')
+        #ax.set_zticks([])
+        for cell in self.final_islet_data:
+            x_coord = cell[3]
+            y_coord = cell[4]
+            z_coord = cell[5]
+            # si no hay columna de radio
+            r_cell = cell[0]
+            #r_cell = 8.
+            cell_type = cell[2]
+            if cell_type == 12.:
+                cell_color = "g"
+            elif cell_type == 11.:
+                cell_color = "r"
+            elif cell_type == 13:
+                cell_color = "b"
+            else:
+                cell_color = "k"
+            s = Sphere(ax, x = x_coord, y = y_coord, z = z_coord, radius = r_cell, detail_level = 10, rstride = 2, cstride = 2, color = cell_color)
+            #s.modify_x(2)
+        ax.mouse_init()
+
+
+        new_toolbar = NavigationToolbar(new_canvas, self.initial_islet_plot_tab)
+        unwanted_buttons = ["Subplots", "Zoom"]
+        for x in new_toolbar.actions():
+            if x.text() in unwanted_buttons:
+                new_toolbar.removeAction(x)
+
+        layout.addWidget(new_canvas)
+        layout.addWidget(new_toolbar)
+        #self.tabWidget_stats.addTab(new_tab, "txt")
+        self.toolbar_handles.append(new_toolbar)
+        self.canvases.append(new_canvas)
+        self.figure_handles.append(figure)
+        self.tab_handles.append(self.initial_islet_plot_tab)
+
+
+    # funcion que saca estadística de islote final
+    def reconstructed_islet_stats(self, finalisletdata):
+        
+        #stats islote
+        ncells = np.shape(finalisletdata)[0]
+        self.fin_ncells_value.setText(str(ncells))
+        self.fin_ncells_perc.setText(str(100.00) + " %")
+        
+        #stats alfas
+        nalphas = np.count_nonzero(finalisletdata[:,2] == 11.)
+        perc_alphas = np.round(nalphas/ncells*100, 2)
+        self.fin_alphacells_value.setText(str(nalphas))
+        self.fin_alphacells_perc.setText(str(perc_alphas) + " %")
+
+        nbetas = np.count_nonzero(finalisletdata[:,2] == 12.)
+        perc_betas = np.round(nbetas/ncells * 100, 2)
+        self.fin_betacells_value.setText(str(nbetas))
+        self.fin_betacells_perc.setText(str(perc_betas)+ " %")
+
+        ndeltas  = np.count_nonzero(finalisletdata[:,2] == 13.)
+        perc_deltas = np.round(ndeltas * 100.  / ncells,2)
+        self.fin_deltacells_value.setText(str(ndeltas))
+        self.fin_deltacells_perc.setText(str(perc_deltas)+ " %")
+        self.calculate_volumes(finalisletdata)
+        #print("nalfas = " + str(nalphas) +" "+ str(perc_alphas))
+        #print("nbetas = " + str(nbetas) +" "+ str(perc_betas))
+        #print("ndeltas = " + str(ndeltas) +" "+ str(perc_deltas))
+
 
     def restart(self):
         QtCore.QCoreApplication.quit()
         status = QtCore.QProcess.startDetached(sys.executable, sys.argv)
         print(status)
+    
+
+    def calculate_volumes(self, finalisletdata):
+        ind_alfas = np.where(finalisletdata[:,2] == 11.)[0]
+        ind_betas = np.where(finalisletdata[:,2] == 12.)[0]
+        ind_deltas = np.where(finalisletdata[:,2] == 13.)[0]
+        volcells = 4./3.*np.pi*finalisletdata[:,0]
+        totalvol = np.sum(volcells)
+        self.fin_total_vol_value.setText('{:.1e}'.format(Decimal(totalvol)))
+        self.fin_total_vol_perc.setText('100.00 %')
+        volalfas = np.sum(volcells[ind_alfas])
+        self.fin_alpha_vol_value.setText('{:.1e}'.format(Decimal(volalfas)))
+        self.fin_alpha_vol_perc.setText(str(np.round(volalfas*100./totalvol,2))+' %')
+        volbetas = np.sum(volcells[ind_betas])
+        self.fin_beta_vol_value.setText('{:.1e}'.format(Decimal(volbetas)))
+        self.fin_beta_vol_perc.setText(str(np.round(volbetas*100./totalvol,2))+' %')
+        voldeltas = np.sum(volcells[ind_deltas])
+        self.fin_delta_vol_value.setText('{:.1e}'.format(Decimal(voldeltas)))
+        self.fin_delta_vol_perc.setText(str(np.round(voldeltas*100./totalvol,2))+' %')
+
+
+
+class Ui_OptLog_Dialog(object):
+    def setupUi(self, Dialog, fout):
+        Dialog.setObjectName("Dialog")
+        Dialog.resize(650, 400)
+        Dialog.setMinimumSize(QtCore.QSize(650, 400))
+        Dialog.setMaximumSize(QtCore.QSize(650, 400))
+        self.textEdit = QtWidgets.QTextEdit(Dialog)
+        self.textEdit.setGeometry(QtCore.QRect(10, 10, 630, 350))
+        self.textEdit.setObjectName("textEdit")
+        self.runopt_pushButton = QtWidgets.QPushButton(Dialog)
+        self.runopt_pushButton.setGeometry(QtCore.QRect(180, 370, 131, 23))
+        self.runopt_pushButton.setObjectName("runopt_pushButton")
+        self.runopt_pushButton.clicked.connect(lambda: self.callProcess(fout))
+        self.abortopt_pushbutton = QtWidgets.QPushButton(Dialog)
+        self.abortopt_pushbutton.setGeometry(QtCore.QRect(340, 370, 131, 23))
+        self.abortopt_pushbutton.setObjectName("abortopt_pushbutton")
+        self.abortopt_pushbutton.clicked.connect(self.abort_opt)
+        self.abortopt_pushbutton.clicked.connect(Dialog.reject)
+
+
+        self.process = QtCore.QProcess(Dialog)
+        self.process.readyRead.connect(self.dataReady)
+
+        self.optstatus = 0
+        self.status_item = ''
+
+        self.retranslateUi(Dialog)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+    def retranslateUi(self, Dialog):
+        _translate = QtCore.QCoreApplication.translate
+        Dialog.setWindowTitle(_translate("Dialog", "Optimization log"))
+        self.runopt_pushButton.setText(_translate("Dialog", "Run"))
+        self.abortopt_pushbutton.setText(_translate("Dialog", "Abort"))
+
+
+    def abort_opt(self, Dialog):
+        self.process.kill()
+        self.optstatus = 0
+        #self.runopt_pushButton.setEnabled(True)
+        #self.abortopt_pushbutton.setEnabled(False)
+        #status = {self.process.NotRunning: "Not Running", self.process.Starting: "Starting", self.process.Running: "Running"}
+        #self.status_item = str(status[self.process.stateChanged])
+        #print(self.status_item)
+
+
+    def callProcess(self, fout):
+        #print(self.process.stateChanged)
+        self.process.start(fout[:-2])
+        self.optstatus = 1
+        self.process.finished.connect(self.process_finished)
+        self.runopt_pushButton.setEnabled(False)
+        self.abortopt_pushbutton.setEnabled(True)
+        #self.process.start('ping', ['127.0.0.1'])
+        #status = {self.process.NotRunning: "Not Running", self.process.Starting: "Starting", self.process.Running: "Running"}
+        #self.status_item = str(status[self.process.stateChanged])
+        #print(self.status_item)
+
+
+    def process_finished(self):
+        if self.optstatus == 0:
+            print("Proceso abortado")
+            #self.abortopt_pushbutton.setEnabled(False)
+            #self.runopt_pushButton.setEnabled(True)
+            #self.abortopt_pushbutton.clicked.connect(self.close)
+        else: 
+            self.optstatus = 2
+            print("Proceso terminado")
+            self.abortopt_pushbutton.setEnabled(False)
+            self.runopt_pushButton.setEnabled(False)
+            self.process = None
         
 
+
+    def dataReady(self):
+        cursor = self.textEdit.textCursor()
+        cursor.movePosition(cursor.End)
+        cursor.insertText(bytearray(self.process.readAllStandardOutput()).decode("ascii"))
+        #cursor.insertText(str(self.process.readAllStandardOutput()))
+        self.textEdit.ensureCursorVisible()
 
 
 class Ui_reconstruction_settings_diag(object):

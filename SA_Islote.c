@@ -470,7 +470,7 @@ int main(void) {
 	// Calculo energia inicial
 	E = energia(sumaRadiosMatriz, distNucMatriz);
 	printf("\nEnergia calculada: %f\n", E);
-
+	fflush(stdout);
 //	for (i = 0; i < numCells; i++) {
 //		for (j = 0; j < numCells; j++) {
 //			if (sumaRadiosMatriz[i][j] > distNucMatriz[i][j]) {
@@ -514,7 +514,7 @@ int main(void) {
 
 		id = omp_get_thread_num();
 
-		printf("Hola soy %d\n",id);
+		fprintf(stdout, "Hola soy %d\n",id);
 		if (id == 0) {
 			if ((maxE - minE) / maxE > StopTolerance) {
 				condicion1 = 1;
@@ -662,6 +662,7 @@ int main(void) {
 						minE, maxE, AcceptN, TrialN, asctime(timeinfo));
 				fflush(archivoLog);
 				printf("temp = %f\n", temp);
+				fflush(stdout);
 				printf("energy = %f\n", E);
 				printf("[minE maxE] = [%f %f]\n", minE, maxE);
 				printf("[AcceptN TrialN] = [%d %d]\n\n", AcceptN, TrialN);

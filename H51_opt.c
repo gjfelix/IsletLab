@@ -20,7 +20,7 @@ struct tm * timeinfo;
 
 // Numero de celulas en archivo de Islote
 #define numCells 588
-#define NUMHILOS 6
+#define NUMHILOS 16
 
 //struct islote{
 //	int n_celula;
@@ -65,7 +65,7 @@ int condicion2 = 0;
 void cargarArchivo() {
 	FILE *fp;
 	int numcelula = 0;
-fp = fopen("/Users/gjfelix/Documents/IsletLab/H51.txt", "r");
+fp = fopen("/home/gerardo/Documents/IsletLab/H51.txt", "r");
 	//fp = fopen("testData.txt", "r");
 	char linea[1000000];
 	while (fgets(linea, sizeof(linea), fp)) {
@@ -271,7 +271,7 @@ void moverRadioNucleo() {
 void guardarArchivoFinal(double radiosCelulasFinal[numCells],
 		double color[numCells]) {
 	int i, j;
-FILE *archivoSalida = fopen("/Users/gjfelix/Documents/IsletLab/H51_reconstructed.txt", "w");
+FILE *archivoSalida = fopen("/home/gerardo/Documents/IsletLab/H51_reconstructed.txt", "w");
 	for (j = 0; j < numCells; ++j) {
 		fprintf(archivoSalida, "%lf\t%lf\t", radiosCelulasFinal[j], color[j]);
 		for (i = 0; i < 4; ++i) {
@@ -285,7 +285,7 @@ FILE *archivoSalida = fopen("/Users/gjfelix/Documents/IsletLab/H51_reconstructed
 void guardarArchivoInicial(double radiosCelulas[numCells],
 		double color[numCells]) {
 	int i, j;
-FILE *archivoSalida = fopen("/Users/gjfelix/Documents/IsletLab/H51_initial.txt", "w");
+FILE *archivoSalida = fopen("/home/gerardo/Documents/IsletLab/H51_initial.txt", "w");
 	for (j = 0; j < numCells; ++j) {
 		fprintf(archivoSalida, "%lf\t%lf\t", radiosCelulas[j], color[j]);
 		for (i = 0; i < 4; ++i) {
@@ -371,8 +371,8 @@ void celcolor(double islote[numCells][4], double col[numCells]) {
 int main(void) {
 	time_t begin = time(NULL);
 	srand(time(NULL));
-int MaxTrialN = numCells * 3;
-int MaxAcceptN = numCells * 1;
+int MaxTrialN = numCells * 10;
+int MaxAcceptN = numCells * 5;
 double StopTolerance = 0.005;
 	double TempRatio = 0.5;
 	double minE = INFINITY;
@@ -384,7 +384,7 @@ double StopTolerance = 0.005;
 	int j;
 	double temp;
 	double E;
-FILE *archivoLog = fopen("/Users/gjfelix/Documents/IsletLab/H51_process_log.txt", "w");
+FILE *archivoLog = fopen("/home/gerardo/Documents/IsletLab/H51_process_log.txt", "w");
 	fprintf(archivoLog, "%-9s\t%-10s\t%-10s\t%-10s\t%-4s\t%-4s\t%s\n", "temp", "E", "minE", "maxE", "AcceptN", "TrialN","Time");
 
 	omp_init_lock(&c_e); //el candado queda abierto por default
@@ -470,7 +470,7 @@ FILE *archivoLog = fopen("/Users/gjfelix/Documents/IsletLab/H51_process_log.txt"
 	// Calculo energia inicial
 	E = energia(sumaRadiosMatriz, distNucMatriz);
 	printf("\nEnergia calculada: %f\n", E);
-
+	fflush(stdout);
 //	for (i = 0; i < numCells; i++) {
 //		for (j = 0; j < numCells; j++) {
 //			if (sumaRadiosMatriz[i][j] > distNucMatriz[i][j]) {
@@ -503,7 +503,7 @@ FILE *archivoLog = fopen("/Users/gjfelix/Documents/IsletLab/H51_process_log.txt"
 //	dEmax = maxdE(E, 50, radiosCelulas, isloteinicial,distNucMatriz, sumaRadiosMatriz);
 //	temp = (double)(dEmax*10);
 //	printf("dEmax = %d, Temperatura inicial = %f\n", dEmax, temp);
-temp = 1.0;
+temp = 10.0;
 	//fprintf(archivoLog, "%s\t%s\t%s\t%s\t%s\t%s\n", "Temp", "E", "minE", "maxE",
 	//		"AcceptN", "TrialN");
 
@@ -514,7 +514,7 @@ temp = 1.0;
 
 		id = omp_get_thread_num();
 
-		printf("Hola soy %d\n",id);
+		fprintf(stdout, "Hola soy %d\n",id);
 		if (id == 0) {
 			if ((maxE - minE) / maxE > StopTolerance) {
 				condicion1 = 1;
@@ -662,6 +662,7 @@ temp = 1.0;
 						minE, maxE, AcceptN, TrialN, asctime(timeinfo));
 				fflush(archivoLog);
 				printf("temp = %f\n", temp);
+				fflush(stdout);
 				printf("energy = %f\n", E);
 				printf("[minE maxE] = [%f %f]\n", minE, maxE);
 				printf("[AcceptN TrialN] = [%d %d]\n\n", AcceptN, TrialN);
