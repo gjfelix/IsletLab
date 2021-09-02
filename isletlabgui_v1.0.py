@@ -19,6 +19,10 @@ from decimal import Decimal
 from shape import Shape
 from sphere import Sphere
 from sys import platform as sys_pf
+
+from matplotlib.dates import date2num
+from datetime import datetime
+
 if sys_pf == 'darwin':
     import matplotlib
     matplotlib.use("Qt5Agg")
@@ -62,11 +66,11 @@ class Ui_MainWindow(object):
         self.current_window = -1
 
         # Parametros default para reconstruccion
-        self.inittemp = 100.
+        self.inittemp = 10.
         self.tolpar = 0.005
-        self.maxiter = 100
-        self.maxacc = 500
-        self.threads = 16
+        self.maxiter = 10
+        self.maxacc = 5
+        self.threads = 6
         self.contacttol = 1.0
 
         #self.message_obj = Message()
@@ -1035,7 +1039,7 @@ class Ui_MainWindow(object):
     def optimizeIslet(self):
         ### Generate C code using initial islet
         
-        
+        opt_start_time = datetime.now()
         # ini_islet_file is the path to the exp file
         try:
             # abro archivo a modificar 
@@ -1124,6 +1128,12 @@ class Ui_MainWindow(object):
                 self.reconstruction_status_label.setText("Reconstruction aborted")
                 self.reconstruction_status_label.setStyleSheet("color: Red")
             elif optstatus == 2:
+                opt_end_time = datetime.now()
+                computing_time = opt_end_time - opt_start_time
+                
+                hours, remainder = divmod(computing_time.seconds, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                self.comp_time_value.setText(str(hours)+":"+str(minutes)+":"+str(seconds))
                 self.reconstruction_status_label.setText("Optimization completed")
                 self.reconstruction_status_label.setStyleSheet("color: Green")
                 self.reconstruct_button.setEnabled(False)
@@ -1148,29 +1158,16 @@ class Ui_MainWindow(object):
             print(e)
             self.reconstruction_status_label.setText("Failed")
             self.reconstruction_status_label.setStyleSheet("color: Red")
-
-
-            #pb = ProgressBar()
-            #for i in range(0, 100):
-            #    time.sleep(0.05)
-            #    pb.setValue(((i + 1) / 100) * 100)
-            #    QtWidgets.QApplication.processEvents()
-
-            #pb.close()
         
 
     
 
     def launch_opt_window(self, fout):
-        #subprocess.run([fout[:-2]])
-        #p = subprocess.Popen([fout[:-2]])
-        #p.wait()
         Dialog = QtWidgets.QDialog()
         ui = Ui_OptLog_Dialog()
         ui.setupUi(Dialog, fout)
         Dialog.exec_()
         return ui.optstatus
-        #subprocess.check_call([fout[:-2]])
         
     
     ## funcion que grafica islote inicial
@@ -1255,6 +1252,7 @@ class Ui_MainWindow(object):
         self.fin_deltacells_perc.setText(str(perc_deltas)+ " %")
         self.calculate_volumes(finalisletdata)
         self.calculate_opt_stats(finalisletdata)
+        self.processar_output_stats()
         
 
 
@@ -1293,9 +1291,12 @@ class Ui_MainWindow(object):
 
     def processar_output_stats(self):
         process_out_file = self.current_islet_file[:-4]+"_process_log.txt"
+    
         processdata = np.loadtxt(process_out_file, skiprows=1, usecols=(0,1,2,3,4,5))
-        self.total_iter_value.setText = str(np.sum(processdata[:,5]))
-        self.acc_iter_value.setText = str(np.sum(processdata[:,4]))
+    
+        self.total_iter_value.setText('{:.2e}'.format(Decimal(np.sum(processdata[:,5]))))
+
+        self.acc_iter_value.setText('{:.2e}'.format(Decimal(np.sum(processdata[:,4]))))
 
 
 
@@ -1347,23 +1348,18 @@ class Ui_OptLog_Dialog(object):
 
     def callProcess(self, fout):
         #print(self.process.stateChanged)
+        self.runopt_pushButton.setEnabled(False)
         self.process.start(fout[:-2])
         self.optstatus = 1
         self.process.finished.connect(self.process_finished)
-        self.runopt_pushButton.setEnabled(False)
         self.abortopt_pushbutton.setEnabled(True)
-        #self.process.start('ping', ['127.0.0.1'])
-        #status = {self.process.NotRunning: "Not Running", self.process.Starting: "Starting", self.process.Running: "Running"}
-        #self.status_item = str(status[self.process.stateChanged])
-        #print(self.status_item)
+    
 
 
     def process_finished(self):
         if self.optstatus == 0:
             print("Proceso abortado")
-            #self.abortopt_pushbutton.setEnabled(False)
-            #self.runopt_pushButton.setEnabled(True)
-            #self.abortopt_pushbutton.clicked.connect(self.close)
+            
         else: 
             self.optstatus = 2
             print("Proceso terminado")
