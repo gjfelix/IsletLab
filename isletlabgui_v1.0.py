@@ -23,6 +23,8 @@ from sys import platform as sys_pf
 from matplotlib.dates import date2num
 from datetime import datetime
 
+import networkx as nx
+
 if sys_pf == 'darwin':
     import matplotlib
     matplotlib.use("Qt5Agg")
@@ -72,6 +74,9 @@ class Ui_MainWindow(object):
         self.maxacc = 5
         self.threads = 6
         self.contacttol = 1.0
+
+        # diccionario de contactos
+        self.contacts_islet = {}
 
         #self.message_obj = Message()
 
@@ -127,6 +132,7 @@ class Ui_MainWindow(object):
         self.contacts_button = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.contacts_button.setObjectName("contacts_button")
         self.MainVerticalLayout_Settings.addWidget(self.contacts_button)
+        self.contacts_button.clicked.connect(self.contactos)
         self.contacts_button.setEnabled(False)
 
         self.contacts_status_label = QtWidgets.QLabel(self.verticalLayoutWidget)
@@ -139,6 +145,7 @@ class Ui_MainWindow(object):
         self.network_button.setObjectName("network_button")
         self.MainVerticalLayout_Settings.addWidget(self.network_button)
         self.network_button.setEnabled(False)
+        self.network_button.clicked.connect(self.build_network)
 
         self.network_status_button = QtWidgets.QLabel(self.verticalLayoutWidget)
         self.network_status_button.setAlignment(QtCore.Qt.AlignCenter)
@@ -436,7 +443,7 @@ class Ui_MainWindow(object):
         self.density_label.setGeometry(QtCore.QRect(10, 30, 100, 15))
         self.density_label.setObjectName("density_label")
         self.clustering_label = QtWidgets.QLabel(self.tab_network_stats)
-        self.clustering_label.setGeometry(QtCore.QRect(10, 50, 100, 15))
+        self.clustering_label.setGeometry(QtCore.QRect(10, 50, 200, 15))
         self.clustering_label.setObjectName("clustering_label")
         self.diameter_label = QtWidgets.QLabel(self.tab_network_stats)
         self.diameter_label.setGeometry(QtCore.QRect(10, 70, 100, 15))
@@ -445,23 +452,23 @@ class Ui_MainWindow(object):
         self.efficiency_label.setGeometry(QtCore.QRect(10, 90, 100, 15))
         self.efficiency_label.setObjectName("efficiency_label")
         self.degree_value = QtWidgets.QLabel(self.tab_network_stats)
-        self.degree_value.setGeometry(QtCore.QRect(170, 10, 100, 15))
+        self.degree_value.setGeometry(QtCore.QRect(200, 10, 100, 15))
         self.degree_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.degree_value.setObjectName("degree_value")
         self.density_value = QtWidgets.QLabel(self.tab_network_stats)
-        self.density_value.setGeometry(QtCore.QRect(170, 30, 100, 15))
+        self.density_value.setGeometry(QtCore.QRect(200, 30, 100, 15))
         self.density_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.density_value.setObjectName("density_value")
         self.clustering_value = QtWidgets.QLabel(self.tab_network_stats)
-        self.clustering_value.setGeometry(QtCore.QRect(170, 50, 100, 15))
+        self.clustering_value.setGeometry(QtCore.QRect(200, 50, 100, 15))
         self.clustering_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.clustering_value.setObjectName("clustering_value")
         self.diameter_value = QtWidgets.QLabel(self.tab_network_stats)
-        self.diameter_value.setGeometry(QtCore.QRect(170, 70, 100, 15))
+        self.diameter_value.setGeometry(QtCore.QRect(200, 70, 100, 15))
         self.diameter_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.diameter_value.setObjectName("diameter_value")
         self.efficiency_value = QtWidgets.QLabel(self.tab_network_stats)
-        self.efficiency_value.setGeometry(QtCore.QRect(170, 90, 100, 15))
+        self.efficiency_value.setGeometry(QtCore.QRect(200, 90, 100, 15))
         self.efficiency_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.efficiency_value.setObjectName("efficiency_value")
         self.tabWidget_islet_stats.addTab(self.tab_network_stats, "")
@@ -730,6 +737,10 @@ class Ui_MainWindow(object):
         self.tabWidget_Plots.setTabEnabled(1, False)
         self.tabWidget_Plots.setTabEnabled(2, False)
         self.tabWidget_Plots.setTabEnabled(3, False)
+
+        self.contacts_plot_button.setEnabled(False)
+        self.network_metrics_plots_butthon.setEnabled(False)
+
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -822,9 +833,9 @@ class Ui_MainWindow(object):
         self.betadelta_contacts_value.setText(_translate("MainWindow", "0"))
         self.betadelta_contacts_perc.setText(_translate("MainWindow", "0"))
         self.tabWidget_islet_stats.setTabText(self.tabWidget_islet_stats.indexOf(self.tab_contacts_stats), _translate("MainWindow", "Contacts"))
-        self.degree_label.setText(_translate("MainWindow", "Degree"))
+        self.degree_label.setText(_translate("MainWindow", "Average degree"))
         self.density_label.setText(_translate("MainWindow", "Density"))
-        self.clustering_label.setText(_translate("MainWindow", "Clustering"))
+        self.clustering_label.setText(_translate("MainWindow", "Average clustering coefficient"))
         self.diameter_label.setText(_translate("MainWindow", "Diameter"))
         self.efficiency_label.setText(_translate("MainWindow", "Efficiency"))
         self.degree_value.setText(_translate("MainWindow", "0"))
@@ -1039,7 +1050,7 @@ class Ui_MainWindow(object):
     def optimizeIslet(self):
         ### Generate C code using initial islet
         
-        opt_start_time = datetime.now()
+        #opt_start_time = datetime.now()
         # ini_islet_file is the path to the exp file
         try:
             # abro archivo a modificar 
@@ -1118,7 +1129,7 @@ class Ui_MainWindow(object):
             #    break
             self.reconstruction_status_label.setText("Optimization in progress")
             self.reconstruction_status_label.setStyleSheet("color: Green")
-            optstatus = self.launch_opt_window(fout)
+            optstatus, computing_time = self.launch_opt_window(fout)
             print("Checo estatus: " + str(optstatus))
             #t = threading.Thread(target=self.run_code, args=(fout,))
             #t.start()
@@ -1128,18 +1139,14 @@ class Ui_MainWindow(object):
                 self.reconstruction_status_label.setText("Reconstruction aborted")
                 self.reconstruction_status_label.setStyleSheet("color: Red")
             elif optstatus == 2:
-                opt_end_time = datetime.now()
-                computing_time = opt_end_time - opt_start_time
-                
-                hours, remainder = divmod(computing_time.seconds, 3600)
-                minutes, seconds = divmod(remainder, 60)
-                self.comp_time_value.setText(str(hours)+":"+str(minutes)+":"+str(seconds))
+                self.comp_time_value.setText(str(computing_time[0])+" h "+str(computing_time[1]) + " m " + str(computing_time[2]) + " s")
                 self.reconstruction_status_label.setText("Optimization completed")
                 self.reconstruction_status_label.setStyleSheet("color: Green")
                 self.reconstruct_button.setEnabled(False)
                 self.contacts_button.setEnabled(True)
                 self.contacts_status_label.setEnabled(True)
-                self.tabWidget_settings.setTabEnabled(1, False)
+                self.tabWidget_settings.setTabEnabled(1, True)
+                
                 
                 self.tabWidget_islet_stats.setTabEnabled(1, True)
                 self.tabWidget_islet_stats.setCurrentIndex(1)
@@ -1148,8 +1155,9 @@ class Ui_MainWindow(object):
                 self.tabWidget_Plots.setCurrentIndex(1)
 
                 self.final_islet_data = np.loadtxt(self.current_islet_file[:-4]+'_reconstructed.txt')
+                self.post_processed_data = self.postprocessIslet(self.final_islet_data)
                 self.plot_reconstructed_islet()
-                self.reconstructed_islet_stats(self.final_islet_data)
+                self.reconstructed_islet_stats(self. post_processed_data)
                 self.processar_output_stats()
 
                 
@@ -1167,7 +1175,8 @@ class Ui_MainWindow(object):
         ui = Ui_OptLog_Dialog()
         ui.setupUi(Dialog, fout)
         Dialog.exec_()
-        return ui.optstatus
+        Dialog.reject()
+        return ui.optstatus, ui.computing_time_processed
         
     
     ## funcion que grafica islote inicial
@@ -1191,7 +1200,7 @@ class Ui_MainWindow(object):
         #ax.set_zlim(-10, 10)
         #ax.set_zlabel('z')
         #ax.set_zticks([])
-        for cell in self.final_islet_data:
+        for cell in self.post_processed_data:
             x_coord = cell[3]
             y_coord = cell[4]
             z_coord = cell[5]
@@ -1298,6 +1307,409 @@ class Ui_MainWindow(object):
 
         self.acc_iter_value.setText('{:.2e}'.format(Decimal(np.sum(processdata[:,4]))))
 
+    def postprocessIslet(self, finalisletdata):
+        ncells = len(finalisletdata)
+        overlapped_cells = []
+        for i in np.arange(ncells):
+            for j in np.arange(i+1, ncells):
+                #print(i,j)
+                sumradios = finalisletdata[i,0] + finalisletdata[j,0]
+                distcenters = np.linalg.norm(finalisletdata[i,3:6]-finalisletdata[j,3:6])
+                #distcenters = (sqrt((finalisletdata[i,3]-finalisletdata[j,3])^2+
+                #    (finalisletdata[i,4]-finalisletdata[j,4])^2))
+                #print(distcenters)
+                if sumradios >= distcenters:
+                    #print("suma de radios: " + str(sumradios))
+                    #print("distancia: " + str(distcenters))
+                    #overlapped_pair = [i,j]
+                    overlapped_cells.append(np.random.choice([i,j]))
+                else:
+                    continue
+
+        finished_islet = np.delete(finalisletdata, np.unique(overlapped_cells), axis=0)
+        #print(overlapped_cells)
+        #print(finished_islet)
+        np.savetxt(self.current_islet_file[:-4]+"_overlapped_cells.txt", np.array(overlapped_cells), fmt='%1.0f')
+        np.savetxt(self.current_islet_file[:-4]+"_postprocessed_islet.txt", finished_islet, fmt='%1.5f')
+        return finished_islet
+
+    def contactos(self):
+        isletdata = np.loadtxt(self.current_islet_file[:-4]+"_postprocessed_islet.txt")
+        # contactos de cualquier tipo
+        contacts_global = 0
+        # contactos alfa-alfa
+        contacts_alfas = 0
+        # contactos beta-beta
+        contacts_betas = 0
+        # contactos delta-delta
+        contacts_deltas = 0
+        # contactos alfa-beta
+        contacts_alfas_betas = 0
+        # contactos alfas-delta
+        contacts_alfas_deltas = 0
+        # contactos betas-deltas
+        contacts_betas_deltas = 0
+        # Matriz de conectividad b-b y b-d
+        contact_matrix_bb_bd = []
+        # Matriz de conectividad a-a
+        contact_matrix_aa = []
+        # Matriz de conectividad a-b
+        contact_matrix_ab = []
+        # Matriz de conetividad a-d
+        contact_matrix_ad = []
+        # Matriz de conectividad b-b
+        contact_matrix_bb = []
+        # Matriz de conectividad b-d 
+        contact_matrix_bd = []
+        # Matriz de conectividad d-d
+        contact_matrix_dd = []
+        # Matriz de conectividad global
+        contact_matrix = []
+        i = 0
+        for cell1 in isletdata:
+            x1 = cell1[3]
+            y1 = cell1[4]
+            z1 = cell1[5]
+            # todos
+            cell1_contact = []
+            # bb-bd
+            cell1_contact_bb_bd = []
+            # aa
+            cell1_contact_aa = []
+            # ab
+            cell1_contact_ab = []
+            # ad
+            cell1_contact_ad = []
+            # bb
+            cell1_contact_bb = []
+            # bd 
+            cell1_contact_bd = []
+            # dd
+            cell1_contact_dd = []
+            j = 0
+            for cell2 in isletdata:
+                x2 = cell2[3]
+                y2 = cell2[4]
+                z2 = cell2[5]
+                if i == j:
+                    cell1_contact.append(cell1[2])
+                    cell1_contact_bb_bd.append(0)
+                    cell1_contact_aa.append(0)
+                    cell1_contact_ab.append(0)
+                    cell1_contact_ad.append(0)
+                    cell1_contact_bb.append(0)
+                    cell1_contact_bd.append(0)
+                    cell1_contact_dd.append(0)
+                    j = j + 1
+                    continue
+                d12 = np.sqrt( (x2 - x1)**2 + (y2 - y1)**2 + (z2 -z1)**2)
+                # contacto de cualquier tipo
+                if cell1[0] + cell2[0] + self.contacttol >= d12:
+                    cell1_contact.append(1)
+                    contacts_global +=1
+                else:
+                    cell1_contact.append(0)
+                # betas-betas    
+                if (cell1[2] == 12.0 and cell2[2] == 12.0):
+                    cell1_contact_aa.append(0)
+                    cell1_contact_ab.append(0)
+                    cell1_contact_ad.append(0)
+                    cell1_contact_bd.append(0)
+                    cell1_contact_dd.append(0)
+                    if cell1[0] + cell2[0] + self.contacttol >= d12:
+                        cell1_contact_bb_bd.append(1)
+                        cell1_contact_bb.append(1)
+                        contacts_betas += 1
+                    else:
+                        cell1_contact_bb_bd.append(0)
+                        cell1_contact_bb.append(0)
+                # alfas-alfas
+                elif (cell1[2] == 11.0 and cell2[2] == 11.0):
+                    cell1_contact_bb_bd.append(0)
+                    cell1_contact_ab.append(0)
+                    cell1_contact_ad.append(0)
+                    cell1_contact_bb.append(0)
+                    cell1_contact_bd.append(0)
+                    cell1_contact_dd.append(0)
+                    if cell1[0] + cell2[0] + self.contacttol >= d12:
+                        contacts_alfas += 1
+                        cell1_contact_aa.append(1)
+                    else:
+                        cell1_contact_aa.append(0)
+                # deltas-deltas
+                elif (cell1[2] == 13.0 and cell2[2] == 13.0):
+                    cell1_contact_bb_bd.append(0)
+                    cell1_contact_aa.append(0)
+                    cell1_contact_ab.append(0)
+                    cell1_contact_ad.append(0)
+                    cell1_contact_bd.append(0)
+                    cell1_contact_bb.append(0)
+                    if cell1[0] + cell2[0] + self.contacttol >= d12:
+                        contacts_deltas += 1
+                        cell1_contact_dd.append(1)
+                    else:
+                        cell1_contact_dd.append(0)
+                # betas - deltas
+                elif (cell1[2] == 12.0 and cell2[2] == 13.0) or (cell1[2] == 13.0 and cell2[2] == 12.0):
+                    cell1_contact_aa.append(0)
+                    cell1_contact_ab.append(0)
+                    cell1_contact_ad.append(0)
+                    cell1_contact_bb.append(0)
+                    cell1_contact_dd.append(0)
+                    if cell1[0] + cell2[0] + self.contacttol >= d12:
+                        cell1_contact_bb_bd.append(1)
+                        contacts_betas_deltas += 1
+                        cell1_contact_bd.append(1)
+                    else:
+                        cell1_contact_bb_bd.append(0)
+                        cell1_contact_bd.append(0)
+                # alfas - betas
+                elif (cell1[2] == 11.0 and cell2[2] == 12.0) or (cell1[2] == 12.0 and cell2[2] == 11.0):
+                    cell1_contact_bb_bd.append(0)
+                    cell1_contact_aa.append(0)
+                    cell1_contact_ad.append(0)
+                    cell1_contact_bb.append(0)
+                    cell1_contact_dd.append(0)
+                    cell1_contact_bd.append(0)
+                    if cell1[0] + cell2[0] + self.contacttol >= d12:
+                        contacts_alfas_betas += 1
+                        cell1_contact_ab.append(1)
+                    else:
+                        cell1_contact_ab.append(0)
+                elif (cell1[2] == 11.0 and cell2[2] == 13.0) or (cell1[2] == 13.0 and cell2[2] == 11.0):
+                    cell1_contact_bb_bd.append(0)
+                    cell1_contact_aa.append(0)
+                    cell1_contact_ab.append(0)
+                    cell1_contact_bd.append(0)
+                    cell1_contact_bb.append(0)
+                    cell1_contact_dd.append(0)
+                    if cell1[0] + cell2[0] + self.contacttol >= d12:
+                        contacts_alfas_deltas += 1 
+                        cell1_contact_ad.append(1)
+                    else:
+                        cell1_contact_ad.append(0)
+                else:
+                    print('Caso raro')
+                    #print(str(cell1[2]) + ' , ' + str(cell2[2]))
+                    #cell1_contact.append(0)
+                #print(np.sum(cell1_contact))
+                j = j + 1
+            #print(np.shape(cell1_contact))
+            contact_matrix.append(np.asarray(cell1_contact))
+            contact_matrix_bb_bd.append(np.asarray(cell1_contact_bb_bd))
+            contact_matrix_aa.append(np.asarray(cell1_contact_aa))
+            contact_matrix_ab.append(np.asarray(cell1_contact_ab))
+            contact_matrix_ad.append(np.asarray(cell1_contact_ad))
+            contact_matrix_bb.append(np.asarray(cell1_contact_bb))
+            contact_matrix_bd.append(np.asarray(cell1_contact_bd))
+            contact_matrix_dd.append(np.asarray(cell1_contact_dd))
+            i = i + 1
+        
+        
+        self.contacts_islet['all'] = np.stack(np.array(contact_matrix), axis = 0)
+        np.savetxt(self.current_islet_file[:-4]+"_all_contacts.txt", self.contacts_islet['all'], fmt='%1.0f')
+        self.contacts_islet['bbbd'] = np.stack(np.array(contact_matrix_bb_bd), axis=0)
+        np.savetxt(self.current_islet_file[:-4]+"_bbbd_contacts.txt", self.contacts_islet['bbbd'], fmt='%1.0f')
+        self.contacts_islet['aa'] = np.stack(np.array(contact_matrix_aa), axis=0)
+        np.savetxt(self.current_islet_file[:-4]+"_aa_contacts.txt", self.contacts_islet['aa'], fmt='%1.0f')
+        self.contacts_islet['ab'] = np.stack(np.array(contact_matrix_ab), axis=0)
+        np.savetxt(self.current_islet_file[:-4]+"_ab_contacts.txt", self.contacts_islet['ab'], fmt='%1.0f')
+        self.contacts_islet['ad'] = np.stack(np.array(contact_matrix_ad), axis=0)
+        np.savetxt(self.current_islet_file[:-4]+"_ad_contacts.txt", self.contacts_islet['ad'], fmt='%1.0f')
+        self.contacts_islet['bb'] = np.stack(np.array(contact_matrix_bb), axis=0)
+        np.savetxt(self.current_islet_file[:-4]+"_bb_contacts.txt", self.contacts_islet['bb'], fmt='%1.0f')
+        self.contacts_islet['bd'] = np.stack(np.array(contact_matrix_bd), axis=0)
+        np.savetxt(self.current_islet_file[:-4]+"_bd_contacts.txt", self.contacts_islet['bd'], fmt='%1.0f')
+        self.contacts_islet['dd'] = np.stack(np.array(contact_matrix_dd), axis=0)
+        np.savetxt(self.current_islet_file[:-4]+"_dd_contacts.txt", self.contacts_islet['dd'], fmt='%1.0f')
+        #contact_matrix.astype('int')
+        contact_count_vec = [contacts_global/2, contacts_alfas/2, contacts_betas/2, contacts_deltas/2, contacts_alfas_betas/2, contacts_alfas_deltas/2, contacts_betas_deltas/2]
+        print(contact_count_vec)
+        #return [contacts_islet, contact_count_vec]
+
+        self.total_contacts_value.setText(str(contact_count_vec[0]))
+        self.total_contacts_perc.setText("100 %")
+        self.alphaalpha_contacts_value.setText(str(contact_count_vec[1]))
+        self.alphaalpha_contacts_perc.setText(str(np.round(contact_count_vec[1]*100./contact_count_vec[0],2))+" %")
+        self.betabeta_contacts_value.setText(str(contact_count_vec[2]))
+        self.betabeta_contacts_perc.setText(str(np.round(contact_count_vec[2]*100./contact_count_vec[0],2))+" %")
+        self.deltadelta_contacts_value.setText(str(contact_count_vec[3]))
+        self.deltadelta_contacts_perc.setText(str(np.round(contact_count_vec[3]*100./contact_count_vec[0],2))+" %")
+        self.alphabeta_contacts_value.setText(str(contact_count_vec[4]))
+        self.alphabeta_contacts_perc.setText(str(np.round(contact_count_vec[4]*100./contact_count_vec[0],2))+" %")
+        self.alphadelta_contacts_value.setText(str(contact_count_vec[5]))
+        self.alphadelta_contacts_perc.setText(str(np.round(contact_count_vec[5]*100./contact_count_vec[0],2))+" %")
+        self.betadelta_contacts_value.setText(str(contact_count_vec[6]))
+        self.betadelta_contacts_perc.setText(str(np.round(contact_count_vec[6]*100./contact_count_vec[0],2))+" %")
+        homotypic_contacts = np.sum(contact_count_vec[1:4])
+        self.homotypic_contacts_value.setText(str(homotypic_contacts))
+        self.homotypic_contacts_perc.setText(str(np.round(homotypic_contacts*100./contact_count_vec[0],2))+" %")
+        heterotypic_contacts = np.sum(contact_count_vec[4:])
+        self.heterotypic_contacts_value.setText(str(heterotypic_contacts))
+        self.heterotypic_contacts_perc.setText(str(np.round(heterotypic_contacts*100./contact_count_vec[0],2))+" %")
+        #return [contacts_islet, contact_count_vec]
+        self.tabWidget_islet_stats.setTabEnabled(2, True)
+        self.tabWidget_islet_stats.setCurrentIndex(2)
+            
+        self.tabWidget_Plots.setTabEnabled(2, True)
+        self.tabWidget_Plots.setCurrentIndex(2)
+        self.plot_contacts(isletdata)
+        self.contacts_button.setEnabled(False)
+        self.network_button.setEnabled(True)
+        self.contacts_status_label.setText("Contacts identified")
+        self.contacts_status_label.setStyleSheet("color: Green")
+        self.contacts_plot_button.setEnabled(False)
+
+        
+    def plot_contacts(self, isletdata):
+        layout = QtWidgets.QVBoxLayout()
+        self.contacts_plot_tab.setLayout(layout)
+
+        figure = plt.figure()
+        figure.subplots_adjust(left=0.1, right=0.99, bottom=0.05, top=1.0, wspace=0.2, hspace=0.2)
+        new_canvas = FigureCanvas(figure)
+        new_canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
+        new_canvas.setFocus()
+        
+        ax = Axes3D(figure)
+        plt.xlabel('x')
+        plt.ylabel('y')
+        ax.view_init(elev = -80., azim = 90)
+        # grafico los puntos (celulas)
+        scattercolors = self.pointcolors(isletdata[:,2])
+        ax.scatter(isletdata[:,3], isletdata[:,4],isletdata[:,5], c=scattercolors, s=3)
+
+        #self.contacts_islet['bbbd'] = np.stack(np.array(contact_matrix_bb_bd), axis=0)
+        #self.contacts_islet['aa'] = np.stack(np.array(contact_matrix_aa), axis=0)
+        #self.contacts_islet['ab'] = np.stack(np.array(contact_matrix_ab), axis=0)
+        #self.contacts_islet['ad'] = np.stack(np.array(contact_matrix_ad), axis=0)
+        #self.contacts_islet['bb'] = np.stack(np.array(contact_matrix_bb), axis=0)
+        #self.contacts_islet['bd'] = np.stack(np.array(contact_matrix_bd), axis=0)
+        #self.contacts_islet['dd'] 
+
+        for key, value in self.contacts_islet.items():
+            if key == 'aa':
+                linkcolor = 'red'
+            elif key == 'ab':
+                linkcolor = 'brown'
+            elif key == 'ad':
+                linkcolor = 'purple'
+            elif key == 'bb':
+                linkcolor = 'green'
+            elif key == 'bd':
+                linkcolor = 'cyan'
+            elif key == 'dd':
+                linkcolor = 'blue'
+
+            for c1 in np.arange(len(value)):
+                for c2 in np.arange(c1 + 1, len(value)):
+                    if value[c1,c2] == 1:
+                        ax.plot([isletdata[c1,3], isletdata[c2,3]], [isletdata[c1,4], isletdata[c2,4]], [isletdata[c1,5], isletdata[c2,5]], c='black')
+
+        ax.mouse_init()
+
+        new_toolbar = NavigationToolbar(new_canvas, self.contacts_plot_tab)
+        unwanted_buttons = ["Subplots", "Zoom"]
+        for x in new_toolbar.actions():
+            if x.text() in unwanted_buttons:
+                new_toolbar.removeAction(x)
+
+        layout.addWidget(new_canvas)
+        layout.addWidget(new_toolbar)
+        #self.tabWidget_stats.addTab(new_tab, "txt")
+        self.toolbar_handles.append(new_toolbar)
+        self.canvases.append(new_canvas)
+        self.figure_handles.append(figure)
+        self.tab_handles.append(self.contacts_plot_tab)
+
+
+    def pointcolors(self, celltypes):
+        cols=[]
+        for l in celltypes:
+            if l==11.:
+                cols.append('red')
+            elif l==12.:
+                cols.append('green')
+            else:
+                cols.append('blue')
+        return cols
+
+
+    def build_network(self):
+        isletdata = np.loadtxt(self.current_islet_file[:-4]+"_postprocessed_islet.txt")
+        # global connectivity
+        #g_connectivity = np.loadtxt(self.current_islet_file[:-4]+"_all_contacts.txt")
+        np.fill_diagonal(self.contacts_islet['all'], 0.)
+        tipo_global = isletdata[:,2]
+        G_global = nx.from_numpy_matrix(self.contacts_islet['all'])
+        self.tabWidget_Plots.setTabEnabled(3, True)
+        self.tabWidget_Plots.setCurrentIndex(3)
+        self.tabWidget_islet_stats.setTabEnabled(3, True)
+        self.tabWidget_islet_stats.setCurrentIndex(3)
+        self.network_status_button.setText("Network generated")
+        self.network_status_button.setStyleSheet("color: Green")
+        self.plot_network(G_global, tipo_global)
+        self.network_stats(G_global)
+        self.network_button.setEnabled(False)
+        self.network_metrics_plots_butthon.setEnabled(True)
+
+    def node_colors(self, tipocelulas):
+        color_nodos = []
+        for tipocel in tipocelulas:
+            if tipocel == 12.:
+                color_nodos.append('green')
+            elif tipocel == 11.:
+                color_nodos.append('red')
+            else:
+                color_nodos.append('blue')
+        return color_nodos
+    
+
+    def plot_network(self, grafo, tipo_global):
+        layout = QtWidgets.QVBoxLayout()
+        self.networks_plot_tab.setLayout(layout)
+
+        figure = plt.figure()
+        #figure.subplots_adjust(left=0.1, right=0.99, bottom=0.05, top=1.0, wspace=0.2, hspace=0.2)
+        new_canvas = FigureCanvas(figure)
+        new_canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
+        new_canvas.setFocus()
+        
+        
+        nx.draw(grafo, node_size=3,with_labels=False, node_color=self.node_colors(tipo_global),ax=figure.add_subplot(111))
+
+
+        #ax.mouse_init()
+
+        new_toolbar = NavigationToolbar(new_canvas, self.contacts_plot_tab)
+        unwanted_buttons = ["Subplots"]
+        for x in new_toolbar.actions():
+            if x.text() in unwanted_buttons:
+                new_toolbar.removeAction(x)
+
+        layout.addWidget(new_canvas)
+        layout.addWidget(new_toolbar)
+        #self.tabWidget_stats.addTab(new_tab, "txt")
+        self.toolbar_handles.append(new_toolbar)
+        self.canvases.append(new_canvas)
+        self.figure_handles.append(figure)
+        self.tab_handles.append(self.contacts_plot_tab)    
+
+    def network_stats(self, G_global):
+        ave_clustering_global = nx.average_clustering(G_global)
+        self.clustering_value.setText(str(np.round(ave_clustering_global,5)))
+        degree_global = [v for k, v in G_global.degree()]
+        ave_degree_global = np.mean(degree_global)
+        self.degree_value.setText(str(np.round(ave_degree_global,5)))
+        eficiencia_global_global = nx.global_efficiency(G_global)
+        self.efficiency_value.setText(str(np.round(eficiencia_global_global,5)))
+        dens_global = nx.density(G_global)
+        self.density_value.setText(str(np.round(dens_global,5)))
+        con_com_global = list(nx.connected_components(G_global))
+        largest_component_global = max(con_com_global, key=len)
+        subgraph_global = G_global.subgraph(largest_component_global)
+        diameter_global = nx.diameter(subgraph_global)
+        self.diameter_value.setText(str(np.round(diameter_global,5)))
 
 
 class Ui_OptLog_Dialog(object):
@@ -1347,12 +1759,14 @@ class Ui_OptLog_Dialog(object):
 
 
     def callProcess(self, fout):
+        self.opt_start_time = datetime.now()
         #print(self.process.stateChanged)
         self.runopt_pushButton.setEnabled(False)
         self.process.start(fout[:-2])
         self.optstatus = 1
-        self.process.finished.connect(self.process_finished)
         self.abortopt_pushbutton.setEnabled(True)
+        self.process.finished.connect(self.process_finished)
+
     
 
 
@@ -1361,6 +1775,13 @@ class Ui_OptLog_Dialog(object):
             print("Proceso abortado")
             
         else: 
+            self.opt_end_time = datetime.now()
+            self.computing_time = self.opt_end_time - self.opt_start_time
+                
+            self.hours, self.remainder = divmod(self.computing_time.seconds, 3600)
+            self.minutes, self.seconds = divmod(self.remainder, 60)
+            self.computing_time_processed = [self.hours, self.minutes, self.seconds]
+            #self.comp_time_value.setText(str(hours)+" h "+str(minutes)+" min "+str(seconds)+ " s")
             self.optstatus = 2
             print("Proceso terminado")
             self.abortopt_pushbutton.setEnabled(False)
