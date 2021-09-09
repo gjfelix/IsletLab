@@ -661,9 +661,9 @@ int main(void) {
 				fprintf(archivoLog, "%lf\t%lf\t%lf\t%lf\t%d\t%d\t%s", temp, E,
 						minE, maxE, AcceptN, TrialN, asctime(timeinfo));
 				fflush(archivoLog);
-				printf("temp = %f\n", temp);
+				printf("temp = %.*f\n", 10, temp);
 				fflush(stdout);
-				printf("energy = %f\n", E);
+				printf("energy = %*f\n", 1, E);
 				printf("[minE maxE] = [%f %f]\n", minE, maxE);
 				printf("[AcceptN TrialN] = [%d %d]\n\n", AcceptN, TrialN);
 				//printf("Tiempo de iteracion: %f \n\n", cpu_time_used);

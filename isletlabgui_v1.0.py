@@ -68,15 +68,38 @@ class Ui_MainWindow(object):
         self.current_window = -1
 
         # Parametros default para reconstruccion
-        self.inittemp = 10.
+        self.inittemp = 1.
         self.tolpar = 0.005
-        self.maxiter = 10
-        self.maxacc = 5
+        self.maxiter = 1
+        self.maxacc = 1
         self.threads = 6
         self.contacttol = 1.0
 
         # diccionario de contactos
         self.contacts_islet = {}
+
+        # parametros default de simulacion
+        self.constfreq = 0.1/60. # periodo = 10 min, freq = 1/10 [min^-1] = 0.1/60 [s^-1]
+        self.constphase = 0.
+        self.initialphase_type = "Constant"
+        self.intrinsicfreq_type = "Constant"
+        self.meanfreq = 0.1/60.
+        self.sdfreq = self.meanfreq/10.
+        self.meanphase = 0.
+        self.sdphase = self.meanphase/10.
+        self.totaltimesim = 1000.0
+        self.dtsim = 0.1
+
+        # interaction strength parameters (kuramoto oscilators)
+        self.Kaa = 1.0
+        self.Kba = 0.1
+        self.Kda = 1.0
+        self.Kab = -10.0
+        self.Kbb = 1.0
+        self.Kdb = 1.0
+        self.Kad = -1.0
+        self.Kbd = -1.0
+        self.Kdd = 1.0
 
         #self.message_obj = Message()
 
@@ -156,383 +179,476 @@ class Ui_MainWindow(object):
         self.tabWidget_islet_stats = QtWidgets.QTabWidget(self.reconstructing_tab)
         self.tabWidget_islet_stats.setGeometry(QtCore.QRect(8, 329, 321, 390))
         self.tabWidget_islet_stats.setObjectName("tabWidget_islet_stats")
+        
         self.tab_initial_islet_stats = QtWidgets.QWidget()
         self.tab_initial_islet_stats.setObjectName("tab_initial_islet_stats")
+        
         self.ini_ncells_label = QtWidgets.QLabel(self.tab_initial_islet_stats)
         self.ini_ncells_label.setGeometry(QtCore.QRect(10, 10, 141, 16))
         self.ini_ncells_label.setObjectName("ini_ncells_label")
+        
         self.ini_alpha_cells_label = QtWidgets.QLabel(self.tab_initial_islet_stats)
         self.ini_alpha_cells_label.setGeometry(QtCore.QRect(10, 30, 141, 16))
         self.ini_alpha_cells_label.setObjectName("ini_alpha_cells_label")
+        
         self.ini_beta_cells_label = QtWidgets.QLabel(self.tab_initial_islet_stats)
         self.ini_beta_cells_label.setGeometry(QtCore.QRect(10, 50, 1411, 16))
         self.ini_beta_cells_label.setObjectName("ini_beta_cells_label")
+        
         self.ini_delta_cells_label = QtWidgets.QLabel(self.tab_initial_islet_stats)
         self.ini_delta_cells_label.setGeometry(QtCore.QRect(10, 70, 141, 16))
         self.ini_delta_cells_label.setObjectName("ini_delta_cells_label")
+        
         self.ini_ncells_value = QtWidgets.QLabel(self.tab_initial_islet_stats)
         self.ini_ncells_value.setGeometry(QtCore.QRect(170, 10, 50, 15))
         self.ini_ncells_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.ini_ncells_value.setObjectName("ini_ncells_value")
+        
         self.ini_alphacells_value = QtWidgets.QLabel(self.tab_initial_islet_stats)
         self.ini_alphacells_value.setGeometry(QtCore.QRect(170, 30, 50, 15))
         self.ini_alphacells_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.ini_alphacells_value.setObjectName("ini_alphacells_value")
+        
         self.ini_betacells_value = QtWidgets.QLabel(self.tab_initial_islet_stats)
         self.ini_betacells_value.setGeometry(QtCore.QRect(170, 50, 50, 15))
         self.ini_betacells_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.ini_betacells_value.setObjectName("ini_betacells_value")
+        
         self.ini_deltacells_value = QtWidgets.QLabel(self.tab_initial_islet_stats)
         self.ini_deltacells_value.setGeometry(QtCore.QRect(170, 70, 50, 15))
         self.ini_deltacells_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.ini_deltacells_value.setObjectName("ini_deltacells_value")
+        
         self.ini_ncells_perc = QtWidgets.QLabel(self.tab_initial_islet_stats)
         self.ini_ncells_perc.setGeometry(QtCore.QRect(250, 10, 50, 15))
         self.ini_ncells_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.ini_ncells_perc.setObjectName("ini_ncells_perc")
+        
         self.ini_alphacells_perc = QtWidgets.QLabel(self.tab_initial_islet_stats)
         self.ini_alphacells_perc.setGeometry(QtCore.QRect(250, 30, 50, 15))
         self.ini_alphacells_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.ini_alphacells_perc.setObjectName("ini_alphacells_perc")
+        
         self.ini_betacells_perc = QtWidgets.QLabel(self.tab_initial_islet_stats)
         self.ini_betacells_perc.setGeometry(QtCore.QRect(250, 50, 50, 15))
         self.ini_betacells_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.ini_betacells_perc.setObjectName("ini_betacells_perc")
+        
         self.ini_deltacells_perc = QtWidgets.QLabel(self.tab_initial_islet_stats)
         self.ini_deltacells_perc.setGeometry(QtCore.QRect(250, 70, 50, 15))
         self.ini_deltacells_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.ini_deltacells_perc.setObjectName("ini_deltacells_perc")
+        
         self.tabWidget_islet_stats.addTab(self.tab_initial_islet_stats, "")
         self.tab_final_islet_stats = QtWidgets.QWidget()
         self.tab_final_islet_stats.setObjectName("tab_final_islet_stats")
+        
         self.fin_deltacells_value = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_deltacells_value.setGeometry(QtCore.QRect(170, 70, 50, 15))
         self.fin_deltacells_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.fin_deltacells_value.setObjectName("fin_deltacells_value")
+        
         self.fin_ncells_value = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_ncells_value.setGeometry(QtCore.QRect(170, 10, 50, 15))
         self.fin_ncells_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.fin_ncells_value.setObjectName("fin_ncells_value")
+        
         self.fin_alphacells_perc = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_alphacells_perc.setGeometry(QtCore.QRect(250, 30, 50, 15))
         self.fin_alphacells_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.fin_alphacells_perc.setObjectName("fin_alphacells_perc")
+        
         self.fin_betacells_value = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_betacells_value.setGeometry(QtCore.QRect(170, 50, 50, 15))
         self.fin_betacells_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.fin_betacells_value.setObjectName("fin_betacells_value")
+        
         self.fin_betacells_perc = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_betacells_perc.setGeometry(QtCore.QRect(250, 50, 50, 15))
         self.fin_betacells_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.fin_betacells_perc.setObjectName("fin_betacells_perc")
+        
         self.fin_delta_cells_label = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_delta_cells_label.setGeometry(QtCore.QRect(10, 70, 141, 16))
         self.fin_delta_cells_label.setObjectName("fin_delta_cells_label")
+        
         self.fin_ncells_perc = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_ncells_perc.setGeometry(QtCore.QRect(250, 10, 50, 15))
         self.fin_ncells_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.fin_ncells_perc.setObjectName("fin_ncells_perc")
+        
         self.fin_beta_cells_label = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_beta_cells_label.setGeometry(QtCore.QRect(10, 50, 1411, 16))
         self.fin_beta_cells_label.setObjectName("fin_beta_cells_label")
+        
         self.fin_ncells_label = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_ncells_label.setGeometry(QtCore.QRect(10, 10, 141, 16))
         self.fin_ncells_label.setObjectName("fin_ncells_label")
+        
         self.fin_alpha_cells_label = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_alpha_cells_label.setGeometry(QtCore.QRect(10, 30, 141, 16))
         self.fin_alpha_cells_label.setObjectName("fin_alpha_cells_label")
+        
         self.fin_alphacells_value = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_alphacells_value.setGeometry(QtCore.QRect(170, 30, 50, 15))
         self.fin_alphacells_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.fin_alphacells_value.setObjectName("fin_alphacells_value")
+        
         self.fin_deltacells_perc = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_deltacells_perc.setGeometry(QtCore.QRect(250, 70, 50, 15))
         self.fin_deltacells_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.fin_deltacells_perc.setObjectName("fin_deltacells_perc")
+        
         self.opt_stats_groupbox = QtWidgets.QGroupBox(self.tab_final_islet_stats)
         self.opt_stats_groupbox.setGeometry(QtCore.QRect(9, 180, 301, 141))
         self.opt_stats_groupbox.setObjectName("opt_stats_groupbox")
+        
         self.perc_of_total_label = QtWidgets.QLabel(self.opt_stats_groupbox)
         self.perc_of_total_label.setGeometry(QtCore.QRect(10, 30, 130, 16))
         self.perc_of_total_label.setObjectName("perc_of_total_label")
+        
         self.n_overlaps_label = QtWidgets.QLabel(self.opt_stats_groupbox)
         self.n_overlaps_label.setGeometry(QtCore.QRect(10, 50, 130, 16))
         self.n_overlaps_label.setObjectName("n_overlaps_label")
+        
         self.total_iter_label = QtWidgets.QLabel(self.opt_stats_groupbox)
         self.total_iter_label.setGeometry(QtCore.QRect(10, 70, 130, 16))
         self.total_iter_label.setObjectName("total_iter_label")
+        
         self.acc_iter_label = QtWidgets.QLabel(self.opt_stats_groupbox)
         self.acc_iter_label.setGeometry(QtCore.QRect(10, 90, 130, 16))
         self.acc_iter_label.setObjectName("acc_iter_label")
+        
         self.comp_time_label = QtWidgets.QLabel(self.opt_stats_groupbox)
         self.comp_time_label.setGeometry(QtCore.QRect(10, 110, 130, 16))
         self.comp_time_label.setObjectName("comp_time_label")
+        
         self.perc_of_total_value = QtWidgets.QLabel(self.opt_stats_groupbox)
         self.perc_of_total_value.setGeometry(QtCore.QRect(180, 30, 100, 15))
         self.perc_of_total_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.perc_of_total_value.setObjectName("perc_of_total_value")
+        
         self.n_overlaps_value = QtWidgets.QLabel(self.opt_stats_groupbox)
         self.n_overlaps_value.setGeometry(QtCore.QRect(180, 50, 100, 15))
         self.n_overlaps_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.n_overlaps_value.setObjectName("n_overlaps_value")
+        
         self.total_iter_value = QtWidgets.QLabel(self.opt_stats_groupbox)
         self.total_iter_value.setGeometry(QtCore.QRect(180, 70, 100, 15))
         self.total_iter_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.total_iter_value.setObjectName("total_iter_value")
+        
         self.acc_iter_value = QtWidgets.QLabel(self.opt_stats_groupbox)
         self.acc_iter_value.setGeometry(QtCore.QRect(180, 90, 100, 15))
         self.acc_iter_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.acc_iter_value.setObjectName("acc_iter_value")
+        
         self.comp_time_value = QtWidgets.QLabel(self.opt_stats_groupbox)
         self.comp_time_value.setGeometry(QtCore.QRect(180, 110, 100, 15))
         self.comp_time_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.comp_time_value.setObjectName("comp_time_value")
+        
         self.fin_total_vol_label = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_total_vol_label.setGeometry(QtCore.QRect(10, 90, 141, 16))
         self.fin_total_vol_label.setObjectName("fin_total_vol_label")
+        
         self.fin_total_vol_value = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_total_vol_value.setGeometry(QtCore.QRect(170, 90, 50, 15))
         self.fin_total_vol_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.fin_total_vol_value.setObjectName("fin_total_vol_value")
+        
         self.fin_total_vol_perc = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_total_vol_perc.setGeometry(QtCore.QRect(250, 90, 50, 15))
         self.fin_total_vol_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.fin_total_vol_perc.setObjectName("fin_total_vol_perc")
+        
         self.fin_alpha_vol_label = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_alpha_vol_label.setGeometry(QtCore.QRect(10, 110, 141, 16))
         self.fin_alpha_vol_label.setObjectName("fin_alpha_vol_label")
+        
         self.fin_alpha_vol_value = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_alpha_vol_value.setGeometry(QtCore.QRect(170, 110, 50, 15))
         self.fin_alpha_vol_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.fin_alpha_vol_value.setObjectName("fin_alpha_vol_value")
+        
         self.fin_alpha_vol_perc = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_alpha_vol_perc.setGeometry(QtCore.QRect(250, 110, 50, 15))
         self.fin_alpha_vol_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.fin_alpha_vol_perc.setObjectName("fin_alpha_vol_perc")
+        
         self.fin_beta_vol_label = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_beta_vol_label.setGeometry(QtCore.QRect(10, 130, 141, 16))
         self.fin_beta_vol_label.setObjectName("fin_beta_vol_label")
+        
         self.fin_delta_vol_label = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_delta_vol_label.setGeometry(QtCore.QRect(10, 150, 141, 16))
         self.fin_delta_vol_label.setObjectName("fin_delta_vol_label")
+        
         self.fin_beta_vol_value = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_beta_vol_value.setGeometry(QtCore.QRect(170, 130, 50, 15))
         self.fin_beta_vol_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.fin_beta_vol_value.setObjectName("fin_beta_vol_value")
+        
         self.fin_delta_vol_value = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_delta_vol_value.setGeometry(QtCore.QRect(170, 150, 50, 15))
         self.fin_delta_vol_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.fin_delta_vol_value.setObjectName("fin_delta_vol_value")
+        
         self.fin_beta_vol_perc = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_beta_vol_perc.setGeometry(QtCore.QRect(250, 130, 50, 15))
         self.fin_beta_vol_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.fin_beta_vol_perc.setObjectName("fin_beta_vol_perc")
+        
         self.fin_delta_vol_perc = QtWidgets.QLabel(self.tab_final_islet_stats)
         self.fin_delta_vol_perc.setGeometry(QtCore.QRect(250, 150, 50, 15))
         self.fin_delta_vol_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.fin_delta_vol_perc.setObjectName("fin_delta_vol_perc")
+        
         self.tabWidget_islet_stats.addTab(self.tab_final_islet_stats, "")
         self.tab_contacts_stats = QtWidgets.QWidget()
         self.tab_contacts_stats.setObjectName("tab_contacts_stats")
+        
         self.total_contacts_label = QtWidgets.QLabel(self.tab_contacts_stats)
         self.total_contacts_label.setGeometry(QtCore.QRect(10, 10, 91, 16))
         self.total_contacts_label.setObjectName("total_contacts_label")
+        
         self.total_contacts_value = QtWidgets.QLabel(self.tab_contacts_stats)
         self.total_contacts_value.setGeometry(QtCore.QRect(170, 10, 57, 15))
         self.total_contacts_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.total_contacts_value.setObjectName("total_contacts_value")
+        
         self.total_contacts_perc = QtWidgets.QLabel(self.tab_contacts_stats)
         self.total_contacts_perc.setGeometry(QtCore.QRect(250, 10, 50, 15))
         self.total_contacts_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.total_contacts_perc.setObjectName("total_contacts_perc")
+        
         self.homotypic_contacts_label = QtWidgets.QLabel(self.tab_contacts_stats)
         self.homotypic_contacts_label.setGeometry(QtCore.QRect(10, 30, 91, 16))
         self.homotypic_contacts_label.setObjectName("homotypic_contacts_label")
+        
         self.homotypic_contacts_value = QtWidgets.QLabel(self.tab_contacts_stats)
         self.homotypic_contacts_value.setGeometry(QtCore.QRect(170, 30, 57, 15))
         self.homotypic_contacts_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.homotypic_contacts_value.setObjectName("homotypic_contacts_value")
+        
         self.homotypic_contacts_perc = QtWidgets.QLabel(self.tab_contacts_stats)
         self.homotypic_contacts_perc.setGeometry(QtCore.QRect(250, 30, 50, 15))
         self.homotypic_contacts_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.homotypic_contacts_perc.setObjectName("homotypic_contacts_perc")
+        
         self.heterotypic_contacts_label = QtWidgets.QLabel(self.tab_contacts_stats)
         self.heterotypic_contacts_label.setGeometry(QtCore.QRect(10, 50, 91, 16))
         self.heterotypic_contacts_label.setObjectName("heterotypic_contacts_label")
+        
         self.heterotypic_contacts_value = QtWidgets.QLabel(self.tab_contacts_stats)
         self.heterotypic_contacts_value.setGeometry(QtCore.QRect(170, 50, 57, 15))
         self.heterotypic_contacts_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.heterotypic_contacts_value.setObjectName("heterotypic_contacts_value")
+        
         self.heterotypic_contacts_perc = QtWidgets.QLabel(self.tab_contacts_stats)
         self.heterotypic_contacts_perc.setGeometry(QtCore.QRect(250, 50, 50, 15))
         self.heterotypic_contacts_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.heterotypic_contacts_perc.setObjectName("heterotypic_contacts_perc")
+        
         self.alphaalpha_contacts_label = QtWidgets.QLabel(self.tab_contacts_stats)
         self.alphaalpha_contacts_label.setGeometry(QtCore.QRect(10, 70, 91, 16))
         self.alphaalpha_contacts_label.setObjectName("alphaalpha_contacts_label")
+        
         self.alphaalpha_contacts_value = QtWidgets.QLabel(self.tab_contacts_stats)
         self.alphaalpha_contacts_value.setGeometry(QtCore.QRect(170, 70, 57, 15))
         self.alphaalpha_contacts_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.alphaalpha_contacts_value.setObjectName("alphaalpha_contacts_value")
+        
         self.alphaalpha_contacts_perc = QtWidgets.QLabel(self.tab_contacts_stats)
         self.alphaalpha_contacts_perc.setGeometry(QtCore.QRect(250, 70, 50, 15))
         self.alphaalpha_contacts_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.alphaalpha_contacts_perc.setObjectName("alphaalpha_contacts_perc")
+        
         self.betabeta_contacts_label = QtWidgets.QLabel(self.tab_contacts_stats)
         self.betabeta_contacts_label.setGeometry(QtCore.QRect(10, 90, 91, 16))
         self.betabeta_contacts_label.setObjectName("betabeta_contacts_label")
+        
         self.betabeta_contacts_value = QtWidgets.QLabel(self.tab_contacts_stats)
         self.betabeta_contacts_value.setGeometry(QtCore.QRect(170, 90, 57, 15))
         self.betabeta_contacts_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.betabeta_contacts_value.setObjectName("betabeta_contacts_value")
+        
         self.betabeta_contacts_perc = QtWidgets.QLabel(self.tab_contacts_stats)
         self.betabeta_contacts_perc.setGeometry(QtCore.QRect(250, 90, 50, 15))
         self.betabeta_contacts_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.betabeta_contacts_perc.setObjectName("betabeta_contacts_perc")
+        
         self.deltadelta_contacts_label = QtWidgets.QLabel(self.tab_contacts_stats)
         self.deltadelta_contacts_label.setGeometry(QtCore.QRect(10, 110, 91, 16))
         self.deltadelta_contacts_label.setObjectName("deltadelta_contacts_label")
+        
         self.deltadelta_contacts_value = QtWidgets.QLabel(self.tab_contacts_stats)
         self.deltadelta_contacts_value.setGeometry(QtCore.QRect(170, 110, 57, 15))
         self.deltadelta_contacts_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.deltadelta_contacts_value.setObjectName("deltadelta_contacts_value")
+        
         self.deltadelta_contacts_perc = QtWidgets.QLabel(self.tab_contacts_stats)
         self.deltadelta_contacts_perc.setGeometry(QtCore.QRect(250, 110, 50, 15))
         self.deltadelta_contacts_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.deltadelta_contacts_perc.setObjectName("deltadelta_contacts_perc")
+        
         self.alphabeta_contacts_label = QtWidgets.QLabel(self.tab_contacts_stats)
         self.alphabeta_contacts_label.setGeometry(QtCore.QRect(10, 130, 91, 16))
         self.alphabeta_contacts_label.setObjectName("alphabeta_contacts_label")
+        
         self.alphabeta_contacts_value = QtWidgets.QLabel(self.tab_contacts_stats)
         self.alphabeta_contacts_value.setGeometry(QtCore.QRect(170, 130, 57, 15))
         self.alphabeta_contacts_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.alphabeta_contacts_value.setObjectName("alphabeta_contacts_value")
+        
         self.alphabeta_contacts_perc = QtWidgets.QLabel(self.tab_contacts_stats)
         self.alphabeta_contacts_perc.setGeometry(QtCore.QRect(250, 130, 50, 15))
         self.alphabeta_contacts_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.alphabeta_contacts_perc.setObjectName("alphabeta_contacts_perc")
+        
         self.alphadelta_contacts_label = QtWidgets.QLabel(self.tab_contacts_stats)
         self.alphadelta_contacts_label.setGeometry(QtCore.QRect(10, 150, 91, 16))
         self.alphadelta_contacts_label.setObjectName("alphadelta_contacts_label")
+        
         self.alphadelta_contacts_value = QtWidgets.QLabel(self.tab_contacts_stats)
         self.alphadelta_contacts_value.setGeometry(QtCore.QRect(170, 150, 57, 15))
         self.alphadelta_contacts_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.alphadelta_contacts_value.setObjectName("alphadelta_contacts_value")
+        
         self.alphadelta_contacts_perc = QtWidgets.QLabel(self.tab_contacts_stats)
         self.alphadelta_contacts_perc.setGeometry(QtCore.QRect(250, 150, 50, 15))
         self.alphadelta_contacts_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.alphadelta_contacts_perc.setObjectName("alphadelta_contacts_perc")
+        
         self.betadelta_contacts_label = QtWidgets.QLabel(self.tab_contacts_stats)
         self.betadelta_contacts_label.setGeometry(QtCore.QRect(10, 170, 91, 16))
         self.betadelta_contacts_label.setObjectName("betadelta_contacts_label")
+        
         self.betadelta_contacts_value = QtWidgets.QLabel(self.tab_contacts_stats)
         self.betadelta_contacts_value.setGeometry(QtCore.QRect(170, 170, 57, 15))
         self.betadelta_contacts_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.betadelta_contacts_value.setObjectName("betadelta_contacts_value")
+        
         self.betadelta_contacts_perc = QtWidgets.QLabel(self.tab_contacts_stats)
         self.betadelta_contacts_perc.setGeometry(QtCore.QRect(250, 170, 50, 15))
         self.betadelta_contacts_perc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.betadelta_contacts_perc.setObjectName("betadelta_contacts_perc")
+        
         self.tabWidget_islet_stats.addTab(self.tab_contacts_stats, "")
         self.tab_network_stats = QtWidgets.QWidget()
         self.tab_network_stats.setObjectName("tab_network_stats")
+        
         self.degree_label = QtWidgets.QLabel(self.tab_network_stats)
         self.degree_label.setGeometry(QtCore.QRect(10, 10, 100, 15))
         self.degree_label.setObjectName("degree_label")
+        
         self.density_label = QtWidgets.QLabel(self.tab_network_stats)
         self.density_label.setGeometry(QtCore.QRect(10, 30, 100, 15))
         self.density_label.setObjectName("density_label")
+        
         self.clustering_label = QtWidgets.QLabel(self.tab_network_stats)
         self.clustering_label.setGeometry(QtCore.QRect(10, 50, 200, 15))
         self.clustering_label.setObjectName("clustering_label")
+        
         self.diameter_label = QtWidgets.QLabel(self.tab_network_stats)
         self.diameter_label.setGeometry(QtCore.QRect(10, 70, 100, 15))
         self.diameter_label.setObjectName("diameter_label")
+        
         self.efficiency_label = QtWidgets.QLabel(self.tab_network_stats)
         self.efficiency_label.setGeometry(QtCore.QRect(10, 90, 100, 15))
         self.efficiency_label.setObjectName("efficiency_label")
+        
         self.degree_value = QtWidgets.QLabel(self.tab_network_stats)
         self.degree_value.setGeometry(QtCore.QRect(200, 10, 100, 15))
         self.degree_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.degree_value.setObjectName("degree_value")
+        
         self.density_value = QtWidgets.QLabel(self.tab_network_stats)
         self.density_value.setGeometry(QtCore.QRect(200, 30, 100, 15))
         self.density_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.density_value.setObjectName("density_value")
+        
         self.clustering_value = QtWidgets.QLabel(self.tab_network_stats)
         self.clustering_value.setGeometry(QtCore.QRect(200, 50, 100, 15))
         self.clustering_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.clustering_value.setObjectName("clustering_value")
+        
         self.diameter_value = QtWidgets.QLabel(self.tab_network_stats)
         self.diameter_value.setGeometry(QtCore.QRect(200, 70, 100, 15))
         self.diameter_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.diameter_value.setObjectName("diameter_value")
+        
         self.efficiency_value = QtWidgets.QLabel(self.tab_network_stats)
         self.efficiency_value.setGeometry(QtCore.QRect(200, 90, 100, 15))
         self.efficiency_value.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.efficiency_value.setObjectName("efficiency_value")
+        
         self.tabWidget_islet_stats.addTab(self.tab_network_stats, "")
         self.tabWidget_settings.addTab(self.reconstructing_tab, "")
-        self.tab_plots = QtWidgets.QWidget()
-        self.tab_plots.setObjectName("tab_plots")
-        self.opt_plot_groupbox = QtWidgets.QGroupBox(self.tab_plots)
-        self.opt_plot_groupbox.setGeometry(QtCore.QRect(10, 5, 321, 61))
-        self.opt_plot_groupbox.setObjectName("opt_plot_groupbox")
-        self.verticalLayoutWidget_2 = QtWidgets.QWidget(self.opt_plot_groupbox)
-        self.verticalLayoutWidget_2.setGeometry(QtCore.QRect(9, 20, 301, 41))
-        self.verticalLayoutWidget_2.setObjectName("verticalLayoutWidget_2")
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_2)
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.plot_convergence_button = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
-        self.plot_convergence_button.setObjectName("plot_convergence_button")
-        self.verticalLayout.addWidget(self.plot_convergence_button)
-        self.arch_plots_groupbox = QtWidgets.QGroupBox(self.tab_plots)
-        self.arch_plots_groupbox.setGeometry(QtCore.QRect(10, 75, 321, 141))
-        self.arch_plots_groupbox.setObjectName("arch_plots_groupbox")
-        self.verticalLayoutWidget_3 = QtWidgets.QWidget(self.arch_plots_groupbox)
-        self.verticalLayoutWidget_3.setGeometry(QtCore.QRect(9, 20, 301, 121))
-        self.verticalLayoutWidget_3.setObjectName("verticalLayoutWidget_3")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_3)
-        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.cell_number_plot_button = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
-        self.cell_number_plot_button.setObjectName("cell_number_plot_button")
-        self.verticalLayout_2.addWidget(self.cell_number_plot_button)
-        self.radii_plot_button = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
-        self.radii_plot_button.setObjectName("radii_plot_button")
-        self.verticalLayout_2.addWidget(self.radii_plot_button)
-        self.islet_volume_plot_button = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
-        self.islet_volume_plot_button.setObjectName("islet_volume_plot_button")
-        self.verticalLayout_2.addWidget(self.islet_volume_plot_button)
-        self.connectivity_plots_groupbox = QtWidgets.QGroupBox(self.tab_plots)
-        self.connectivity_plots_groupbox.setGeometry(QtCore.QRect(9, 230, 321, 61))
-        self.connectivity_plots_groupbox.setObjectName("connectivity_plots_groupbox")
-        self.verticalLayoutWidget_4 = QtWidgets.QWidget(self.connectivity_plots_groupbox)
-        self.verticalLayoutWidget_4.setGeometry(QtCore.QRect(9, 19, 301, 41))
-        self.verticalLayoutWidget_4.setObjectName("verticalLayoutWidget_4")
-        self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_4)
-        self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.contacts_plot_button = QtWidgets.QPushButton(self.verticalLayoutWidget_4)
-        self.contacts_plot_button.setObjectName("contacts_plot_button")
-        self.verticalLayout_3.addWidget(self.contacts_plot_button)
-        self.network_plots_groupbox = QtWidgets.QGroupBox(self.tab_plots)
-        self.network_plots_groupbox.setGeometry(QtCore.QRect(10, 300, 321, 80))
-        self.network_plots_groupbox.setObjectName("network_plots_groupbox")
-        self.verticalLayoutWidget_5 = QtWidgets.QWidget(self.network_plots_groupbox)
-        self.verticalLayoutWidget_5.setGeometry(QtCore.QRect(9, 20, 301, 61))
-        self.verticalLayoutWidget_5.setObjectName("verticalLayoutWidget_5")
-        self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_5)
-        self.verticalLayout_5.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_5.setObjectName("verticalLayout_5")
-        self.network_metrics_plots_butthon = QtWidgets.QPushButton(self.verticalLayoutWidget_5)
-        self.network_metrics_plots_butthon.setObjectName("network_metrics_plots_butthon")
-        self.verticalLayout_5.addWidget(self.network_metrics_plots_butthon)
-        self.tabWidget_settings.addTab(self.tab_plots, "")
-        self.tab_2 = QtWidgets.QWidget()
-        self.tab_2.setObjectName("tab_2")
-        self.intrinsicfreq_groupbox = QtWidgets.QGroupBox(self.tab_2)
+        #self.tab_plots = QtWidgets.QWidget()
+        #self.tab_plots.setObjectName("tab_plots")
+        #self.opt_plot_groupbox = QtWidgets.QGroupBox(self.tab_plots)
+        #self.opt_plot_groupbox.setGeometry(QtCore.QRect(10, 5, 321, 61))
+        #self.opt_plot_groupbox.setObjectName("opt_plot_groupbox")
+        #self.verticalLayoutWidget_2 = QtWidgets.QWidget(self.opt_plot_groupbox)
+        #self.verticalLayoutWidget_2.setGeometry(QtCore.QRect(9, 20, 301, 41))
+        #self.verticalLayoutWidget_2.setObjectName("verticalLayoutWidget_2")
+        #self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_2)
+        #self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        #self.verticalLayout.setObjectName("verticalLayout")
+        
+        #self.plot_convergence_button = QtWidgets.QPushButton(self.verticalLayoutWidget_2)
+        #self.plot_convergence_button.setObjectName("plot_convergence_button")
+        #self.plot_convergence_button.clicked.connect(self.plotOptConvergence)
+        #self.verticalLayout.addWidget(self.plot_convergence_button)
+        
+
+        # self.arch_plots_groupbox = QtWidgets.QGroupBox(self.tab_plots)
+        # self.arch_plots_groupbox.setGeometry(QtCore.QRect(10, 75, 321, 141))
+        # self.arch_plots_groupbox.setObjectName("arch_plots_groupbox")
+        # self.verticalLayoutWidget_3 = QtWidgets.QWidget(self.arch_plots_groupbox)
+        # self.verticalLayoutWidget_3.setGeometry(QtCore.QRect(9, 20, 301, 121))
+        # self.verticalLayoutWidget_3.setObjectName("verticalLayoutWidget_3")
+        # self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_3)
+        # self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
+        # self.verticalLayout_2.setObjectName("verticalLayout_2")
+        # self.cell_number_plot_button = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
+        # self.cell_number_plot_button.setObjectName("cell_number_plot_button")
+        # self.verticalLayout_2.addWidget(self.cell_number_plot_button)
+        # self.radii_plot_button = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
+        # self.radii_plot_button.setObjectName("radii_plot_button")
+        # self.verticalLayout_2.addWidget(self.radii_plot_button)
+        # self.islet_volume_plot_button = QtWidgets.QPushButton(self.verticalLayoutWidget_3)
+        # self.islet_volume_plot_button.setObjectName("islet_volume_plot_button")
+        # self.verticalLayout_2.addWidget(self.islet_volume_plot_button)
+        # self.connectivity_plots_groupbox = QtWidgets.QGroupBox(self.tab_plots)
+        # self.connectivity_plots_groupbox.setGeometry(QtCore.QRect(9, 230, 321, 61))
+        # self.connectivity_plots_groupbox.setObjectName("connectivity_plots_groupbox")
+        # self.verticalLayoutWidget_4 = QtWidgets.QWidget(self.connectivity_plots_groupbox)
+        # self.verticalLayoutWidget_4.setGeometry(QtCore.QRect(9, 19, 301, 41))
+        # self.verticalLayoutWidget_4.setObjectName("verticalLayoutWidget_4")
+        # self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_4)
+        # self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
+        # self.verticalLayout_3.setObjectName("verticalLayout_3")
+        # self.contacts_plot_button = QtWidgets.QPushButton(self.verticalLayoutWidget_4)
+        # self.contacts_plot_button.setObjectName("contacts_plot_button")
+        # self.verticalLayout_3.addWidget(self.contacts_plot_button)
+        # self.network_plots_groupbox = QtWidgets.QGroupBox(self.tab_plots)
+        # self.network_plots_groupbox.setGeometry(QtCore.QRect(10, 300, 321, 80))
+        # self.network_plots_groupbox.setObjectName("network_plots_groupbox")
+        # self.verticalLayoutWidget_5 = QtWidgets.QWidget(self.network_plots_groupbox)
+        # self.verticalLayoutWidget_5.setGeometry(QtCore.QRect(9, 20, 301, 61))
+        # self.verticalLayoutWidget_5.setObjectName("verticalLayoutWidget_5")
+        # self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_5)
+        # self.verticalLayout_5.setContentsMargins(0, 0, 0, 0)
+        # self.verticalLayout_5.setObjectName("verticalLayout_5")
+        # self.network_metrics_plots_butthon = QtWidgets.QPushButton(self.verticalLayoutWidget_5)
+        # self.network_metrics_plots_butthon.setObjectName("network_metrics_plots_butthon")
+        # self.verticalLayout_5.addWidget(self.network_metrics_plots_butthon)
+        #self.tabWidget_settings.addTab(self.tab_plots, "")
+        self.simulation_tab = QtWidgets.QWidget()
+        self.simulation_tab.setObjectName("simulation_tab")
+        self.intrinsicfreq_groupbox = QtWidgets.QGroupBox(self.simulation_tab)
         self.intrinsicfreq_groupbox.setGeometry(QtCore.QRect(10, 10, 321, 111))
         self.intrinsicfreq_groupbox.setObjectName("intrinsicfreq_groupbox")
         self.verticalLayoutWidget_6 = QtWidgets.QWidget(self.intrinsicfreq_groupbox)
@@ -544,25 +660,31 @@ class Ui_MainWindow(object):
         self.intrinsicfreq_constant_radio = QtWidgets.QRadioButton(self.verticalLayoutWidget_6)
         self.intrinsicfreq_constant_radio.setObjectName("intrinsicfreq_constant_radio")
         self.verticalLayout_6.addWidget(self.intrinsicfreq_constant_radio)
+        self.intrinsicfreq_constant_radio.setChecked(True)
         self.intrinsicfreq_random_radio = QtWidgets.QRadioButton(self.verticalLayoutWidget_6)
         self.intrinsicfreq_random_radio.setObjectName("intrinsicfreq_random_radio")
         self.verticalLayout_6.addWidget(self.intrinsicfreq_random_radio)
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setSpacing(6)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.intrinsicfreq_file_radio = QtWidgets.QRadioButton(self.verticalLayoutWidget_6)
-        self.intrinsicfreq_file_radio.setObjectName("intrinsicfreq_file_radio")
-        self.horizontalLayout.addWidget(self.intrinsicfreq_file_radio)
-        self.intrinsicfreq_file_button = QtWidgets.QPushButton(self.verticalLayoutWidget_6)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.intrinsicfreq_file_button.sizePolicy().hasHeightForWidth())
-        self.intrinsicfreq_file_button.setSizePolicy(sizePolicy)
-        self.intrinsicfreq_file_button.setObjectName("intrinsicfreq_file_button")
-        self.horizontalLayout.addWidget(self.intrinsicfreq_file_button)
-        self.verticalLayout_6.addLayout(self.horizontalLayout)
-        self.intitialphase_groupbox = QtWidgets.QGroupBox(self.tab_2)
+        self.intrinsicfreq_config_button = QtWidgets.QPushButton(self.verticalLayoutWidget_6)
+        self.intrinsicfreq_config_button.setObjectName("intrinsicfreq_config_button")
+        self.intrinsicfreq_config_button.clicked.connect(self.selectIntrinsicFreqConfig)
+        self.verticalLayout_6.addWidget(self.intrinsicfreq_config_button)
+        #self.horizontalLayout = QtWidgets.QHBoxLayout()
+        #self.horizontalLayout.setSpacing(6)
+        #self.horizontalLayout.setObjectName("horizontalLayout")
+        #self.intrinsicfreq_file_radio = QtWidgets.QRadioButton(self.verticalLayoutWidget_6)
+        #self.intrinsicfreq_file_radio.setObjectName("intrinsicfreq_file_radio")
+        #self.intrinsicfreq_file_radio.clicked.connect(self.open_int_freq_file)
+        #self.horizontalLayout.addWidget(self.intrinsicfreq_file_radio)
+        #self.intrinsicfreq_file_button = QtWidgets.QPushButton(self.verticalLayoutWidget_6)
+        #sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed)
+        #sizePolicy.setHorizontalStretch(0)
+        #sizePolicy.setVerticalStretch(0)
+        #sizePolicy.setHeightForWidth(self.intrinsicfreq_file_button.sizePolicy().hasHeightForWidth())
+        #self.intrinsicfreq_file_button.setSizePolicy(sizePolicy)
+        #self.intrinsicfreq_file_button.setObjectName("intrinsicfreq_file_button")
+        #self.horizontalLayout.addWidget(self.intrinsicfreq_file_button)
+        #self.verticalLayout_6.addLayout(self.horizontalLayout)
+        self.intitialphase_groupbox = QtWidgets.QGroupBox(self.simulation_tab)
         self.intitialphase_groupbox.setGeometry(QtCore.QRect(10, 130, 321, 111))
         self.intitialphase_groupbox.setObjectName("intitialphase_groupbox")
         self.verticalLayoutWidget_7 = QtWidgets.QWidget(self.intitialphase_groupbox)
@@ -576,23 +698,31 @@ class Ui_MainWindow(object):
         self.verticalLayout_7.addWidget(self.initialphase_constant_radio)
         self.initialphase_random_radio = QtWidgets.QRadioButton(self.verticalLayoutWidget_7)
         self.initialphase_random_radio.setObjectName("initialphase_random_radio")
+        self.initialphase_constant_radio.setChecked(True)
         self.verticalLayout_7.addWidget(self.initialphase_random_radio)
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_2.setSpacing(6)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.intitialphase_file_radio = QtWidgets.QRadioButton(self.verticalLayoutWidget_7)
-        self.intitialphase_file_radio.setObjectName("intitialphase_file_radio")
-        self.horizontalLayout_2.addWidget(self.intitialphase_file_radio)
-        self.intitialphase_file_button = QtWidgets.QPushButton(self.verticalLayoutWidget_7)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.intitialphase_file_button.sizePolicy().hasHeightForWidth())
-        self.intitialphase_file_button.setSizePolicy(sizePolicy)
-        self.intitialphase_file_button.setObjectName("intitialphase_file_button")
-        self.horizontalLayout_2.addWidget(self.intitialphase_file_button)
-        self.verticalLayout_7.addLayout(self.horizontalLayout_2)
-        self.interaction_strength_groupbox = QtWidgets.QGroupBox(self.tab_2)
+
+        self.initialphase_config_button = QtWidgets.QPushButton(self.verticalLayoutWidget_7)
+        self.initialphase_config_button.setObjectName("initialphase_config_button")
+        self.initialphase_config_button.clicked.connect(self.selectInitialPhaseConfig)
+        self.verticalLayout_7.addWidget(self.initialphase_config_button)
+
+
+        #self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        #self.horizontalLayout_2.setSpacing(6)
+        #self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        #self.intitialphase_file_radio = QtWidgets.QRadioButton(self.verticalLayoutWidget_7)
+        #self.intitialphase_file_radio.setObjectName("intitialphase_file_radio")
+        #self.horizontalLayout_2.addWidget(self.intitialphase_file_radio)
+        #self.intitialphase_file_button = QtWidgets.QPushButton(self.verticalLayoutWidget_7)
+        #sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed)
+        #sizePolicy.setHorizontalStretch(0)
+        #sizePolicy.setVerticalStretch(0)
+        #sizePolicy.setHeightForWidth(self.intitialphase_file_button.sizePolicy().hasHeightForWidth())
+        #self.intitialphase_file_button.setSizePolicy(sizePolicy)
+        #self.intitialphase_file_button.setObjectName("intitialphase_file_button")
+        #self.horizontalLayout_2.addWidget(self.intitialphase_file_button)
+        #self.verticalLayout_7.addLayout(self.horizontalLayout_2)
+        self.interaction_strength_groupbox = QtWidgets.QGroupBox(self.simulation_tab)
         self.interaction_strength_groupbox.setGeometry(QtCore.QRect(10, 250, 311, 111))
         self.interaction_strength_groupbox.setObjectName("interaction_strength_groupbox")
         self.verticalLayoutWidget_8 = QtWidgets.QWidget(self.interaction_strength_groupbox)
@@ -601,18 +731,21 @@ class Ui_MainWindow(object):
         self.verticalLayout_8 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_8)
         self.verticalLayout_8.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_8.setObjectName("verticalLayout_8")
-        self.constant_strength_constant_radio = QtWidgets.QRadioButton(self.verticalLayoutWidget_8)
-        self.constant_strength_constant_radio.setObjectName("constant_strength_constant_radio")
-        self.verticalLayout_8.addWidget(self.constant_strength_constant_radio)
-        self.interaction_strength_random_radio = QtWidgets.QRadioButton(self.verticalLayoutWidget_8)
-        self.interaction_strength_random_radio.setObjectName("interaction_strength_random_radio")
-        self.verticalLayout_8.addWidget(self.interaction_strength_random_radio)
-        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_3.setSpacing(6)
-        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-        self.interaction_strength_file_label = QtWidgets.QRadioButton(self.verticalLayoutWidget_8)
-        self.interaction_strength_file_label.setObjectName("interaction_strength_file_label")
-        self.horizontalLayout_3.addWidget(self.interaction_strength_file_label)
+        #self.constant_strength_constant_radio = QtWidgets.QRadioButton(self.verticalLayoutWidget_8)
+        #self.constant_strength_constant_radio.setObjectName("constant_strength_constant_radio")
+        #self.verticalLayout_8.addWidget(self.constant_strength_constant_radio)
+        #self.interaction_strength_random_radio = QtWidgets.QRadioButton(self.verticalLayoutWidget_8)
+        #self.interaction_strength_random_radio.setObjectName("interaction_strength_random_radio")
+        #self.verticalLayout_8.addWidget(self.interaction_strength_random_radio)
+        
+
+        #self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
+        #self.horizontalLayout_3.setSpacing(6)
+        #self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+        #self.interaction_strength_file_radio = QtWidgets.QRadioButton(self.verticalLayoutWidget_8)
+        #self.interaction_strength_file_radio.setObjectName("interaction_strength_file_radio")
+        #self.interaction_strength_file_radio.toggled.connect(self.activate_interaction_strength_file_button)
+        #self.horizontalLayout_3.addWidget(self.interaction_strength_file_radio)
         self.interaction_strength_file_button = QtWidgets.QPushButton(self.verticalLayoutWidget_8)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -620,9 +753,13 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.interaction_strength_file_button.sizePolicy().hasHeightForWidth())
         self.interaction_strength_file_button.setSizePolicy(sizePolicy)
         self.interaction_strength_file_button.setObjectName("interaction_strength_file_button")
-        self.horizontalLayout_3.addWidget(self.interaction_strength_file_button)
-        self.verticalLayout_8.addLayout(self.horizontalLayout_3)
-        self.sim_settings_groupbox = QtWidgets.QGroupBox(self.tab_2)
+        self.interaction_strength_file_button.clicked.connect(self.open_interaction_strength_dialog)
+        
+
+
+        self.verticalLayout_8.addWidget(self.interaction_strength_file_button)
+        #self.verticalLayout_8.addLayout(self.horizontalLayout_3)
+        self.sim_settings_groupbox = QtWidgets.QGroupBox(self.simulation_tab)
         self.sim_settings_groupbox.setGeometry(QtCore.QRect(10, 370, 321, 101))
         self.sim_settings_groupbox.setObjectName("sim_settings_groupbox")
         self.formLayoutWidget = QtWidgets.QWidget(self.sim_settings_groupbox)
@@ -638,14 +775,16 @@ class Ui_MainWindow(object):
         self.total_time_lineedit.setMaximumSize(QtCore.QSize(500, 16777215))
         self.total_time_lineedit.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.total_time_lineedit.setObjectName("total_time_lineedit")
+        self.total_time_lineedit.setText(str(self.totaltimesim))
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.total_time_lineedit)
         self.sim_timestep_label = QtWidgets.QLabel(self.formLayoutWidget)
         self.sim_timestep_label.setObjectName("sim_timestep_label")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.sim_timestep_label)
         self.timestep_lineedit = QtWidgets.QLineEdit(self.formLayoutWidget)
         self.timestep_lineedit.setObjectName("timestep_lineedit")
+        self.timestep_lineedit.setText(str(self.dtsim))
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.timestep_lineedit)
-        self.run_simulation_button = QtWidgets.QPushButton(self.tab_2)
+        self.run_simulation_button = QtWidgets.QPushButton(self.simulation_tab)
         self.run_simulation_button.setGeometry(QtCore.QRect(10, 490, 321, 81))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -653,7 +792,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.run_simulation_button.sizePolicy().hasHeightForWidth())
         self.run_simulation_button.setSizePolicy(sizePolicy)
         self.run_simulation_button.setObjectName("run_simulation_button")
-        self.tabWidget_settings.addTab(self.tab_2, "")
+        self.tabWidget_settings.addTab(self.simulation_tab, "")
         self.tabWidget_Plots = QtWidgets.QTabWidget(self.centralwidget)
         self.tabWidget_Plots.setGeometry(QtCore.QRect(342, 1, 681, 725))
         self.tabWidget_Plots.setObjectName("tabWidget_Plots")
@@ -721,8 +860,8 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         #self.tabWidget_settings.setCurrentIndex(0)
         self.tabWidget_settings.setTabEnabled(1, False)
-        self.tabWidget_settings.setTabEnabled(2, False)
-        self.tabWidget_settings.setTabEnabled(3, False)
+        #self.tabWidget_settings.setTabEnabled(2, False)
+        #self.tabWidget_settings.setTabEnabled(3, False)
 
 
         #self.tabWidget_islet_stats.setCurrentIndex(0)
@@ -731,15 +870,15 @@ class Ui_MainWindow(object):
         self.tabWidget_islet_stats.setTabEnabled(2, False)
         self.tabWidget_islet_stats.setTabEnabled(3, False)
         
-        
-        #self.tabWidget_Plots.setCurrentIndex(0)
+
+        self.tabWidget_Plots.setCurrentIndex(0)
         self.tabWidget_Plots.setTabEnabled(0, False)
         self.tabWidget_Plots.setTabEnabled(1, False)
         self.tabWidget_Plots.setTabEnabled(2, False)
         self.tabWidget_Plots.setTabEnabled(3, False)
 
-        self.contacts_plot_button.setEnabled(False)
-        self.network_metrics_plots_butthon.setEnabled(False)
+        #self.contacts_plot_button.setEnabled(False)
+        #self.network_metrics_plots_button.setEnabled(False)
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -845,37 +984,42 @@ class Ui_MainWindow(object):
         self.efficiency_value.setText(_translate("MainWindow", "0"))
         self.tabWidget_islet_stats.setTabText(self.tabWidget_islet_stats.indexOf(self.tab_network_stats), _translate("MainWindow", "Network"))
         self.tabWidget_settings.setTabText(self.tabWidget_settings.indexOf(self.reconstructing_tab), _translate("MainWindow", "Reconstruction"))
-        self.opt_plot_groupbox.setTitle(_translate("MainWindow", "Optimization"))
-        self.plot_convergence_button.setText(_translate("MainWindow", "Convergence"))
-        self.arch_plots_groupbox.setTitle(_translate("MainWindow", "Architecture"))
-        self.cell_number_plot_button.setText(_translate("MainWindow", "Number of cells"))
-        self.radii_plot_button.setText(_translate("MainWindow", "Cells radii"))
-        self.islet_volume_plot_button.setText(_translate("MainWindow", "Islet volume"))
-        self.connectivity_plots_groupbox.setTitle(_translate("MainWindow", "Connectivity"))
-        self.contacts_plot_button.setText(_translate("MainWindow", "Cell-to-cell contacts"))
-        self.network_plots_groupbox.setTitle(_translate("MainWindow", "Network"))
-        self.network_metrics_plots_butthon.setText(_translate("MainWindow", "Metrics"))
-        self.tabWidget_settings.setTabText(self.tabWidget_settings.indexOf(self.tab_plots), _translate("MainWindow", "Graphs"))
+        #self.opt_plot_groupbox.setTitle(_translate("MainWindow", "Optimization"))
+        #self.plot_convergence_button.setText(_translate("MainWindow", "Convergence"))
+        #self.arch_plots_groupbox.setTitle(_translate("MainWindow", "Architecture"))
+        #self.cell_number_plot_button.setText(_translate("MainWindow", "Number of cells"))
+        #self.radii_plot_button.setText(_translate("MainWindow", "Cells radii"))
+        #self.islet_volume_plot_button.setText(_translate("MainWindow", "Islet volume"))
+        #self.connectivity_plots_groupbox.setTitle(_translate("MainWindow", "Connectivity"))
+        #self.contacts_plot_button.setText(_translate("MainWindow", "Cell-to-cell contacts"))
+        #self.network_plots_groupbox.setTitle(_translate("MainWindow", "Network"))
+        #self.network_metrics_plots_butthon.setText(_translate("MainWindow", "Metrics"))
+        #self.tabWidget_settings.setTabText(self.tabWidget_settings.indexOf(self.tab_plots), _translate("MainWindow", "Graphs"))
         self.intrinsicfreq_groupbox.setTitle(_translate("MainWindow", "Intrinsic frequency"))
         self.intrinsicfreq_constant_radio.setText(_translate("MainWindow", "Constant"))
         self.intrinsicfreq_random_radio.setText(_translate("MainWindow", "Random"))
-        self.intrinsicfreq_file_radio.setText(_translate("MainWindow", "From file"))
-        self.intrinsicfreq_file_button.setText(_translate("MainWindow", "Open"))
+        self.intrinsicfreq_config_button.setText(_translate("MainWindow", "Configure"))
+        #self.intrinsicfreq_file_radio.setText(_translate("MainWindow", "From file"))
+        #self.intrinsicfreq_file_button.setText(_translate("MainWindow", "Open"))
         self.intitialphase_groupbox.setTitle(_translate("MainWindow", "Initial phase"))
         self.initialphase_constant_radio.setText(_translate("MainWindow", "Constant"))
         self.initialphase_random_radio.setText(_translate("MainWindow", "Random"))
-        self.intitialphase_file_radio.setText(_translate("MainWindow", "From file"))
-        self.intitialphase_file_button.setText(_translate("MainWindow", "Open"))
+        self.initialphase_config_button.setText(_translate("MainWindow", "Configure"))
+        #self.intitialphase_file_radio.setText(_translate("MainWindow", "From file"))
+        #self.intitialphase_file_button.setText(_translate("MainWindow", "Open"))
+        
         self.interaction_strength_groupbox.setTitle(_translate("MainWindow", "Interaction strenght"))
-        self.constant_strength_constant_radio.setText(_translate("MainWindow", "Constant"))
-        self.interaction_strength_random_radio.setText(_translate("MainWindow", "Random"))
-        self.interaction_strength_file_label.setText(_translate("MainWindow", "From file"))
-        self.interaction_strength_file_button.setText(_translate("MainWindow", "Open"))
+        #self.constant_strength_constant_radio.setText(_translate("MainWindow", "Constant"))
+        #self.interaction_strength_random_radio.setText(_translate("MainWindow", "Random"))
+        #self.interaction_strength_file_radio.setText(_translate("MainWindow", "From file"))
+        self.interaction_strength_file_button.setText(_translate("MainWindow", "Configure interactions"))
+        
+
         self.sim_settings_groupbox.setTitle(_translate("MainWindow", "Simulation settings"))
         self.sim_total_time_label.setText(_translate("MainWindow", "Total time"))
         self.sim_timestep_label.setText(_translate("MainWindow", "Time step"))
         self.run_simulation_button.setText(_translate("MainWindow", "Run Simulation"))
-        self.tabWidget_settings.setTabText(self.tabWidget_settings.indexOf(self.tab_2), _translate("MainWindow", "Simulation"))
+        self.tabWidget_settings.setTabText(self.tabWidget_settings.indexOf(self.simulation_tab), _translate("MainWindow", "Simulation"))
         self.tabWidget_Plots.setTabText(self.tabWidget_Plots.indexOf(self.initial_islet_plot_tab), _translate("MainWindow", "Initial Islet"))
         self.tabWidget_Plots.setTabText(self.tabWidget_Plots.indexOf(self.final_islet_plot_tab), _translate("MainWindow", "Final Islet"))
         self.tabWidget_Plots.setTabText(self.tabWidget_Plots.indexOf(self.contacts_plot_tab), _translate("MainWindow", "Contacts"))
@@ -891,7 +1035,7 @@ class Ui_MainWindow(object):
         self.actionLoad_data.setText(_translate("MainWindow", "Load data"))
         self.actionRestart.setText(_translate("MainWindow", "Restart"))
         self.actionSimulation.setText(_translate("MainWindow", "Simulation"))
-        self.actionGraphs.setText(_translate("MainWindow", "Graphs"))
+        #self.actionGraphs.setText(_translate("MainWindow", "Graphs"))
 
     def open_islet_file_button_clicked(self, s):
         #print("click", s)
@@ -1145,7 +1289,7 @@ class Ui_MainWindow(object):
                 self.reconstruct_button.setEnabled(False)
                 self.contacts_button.setEnabled(True)
                 self.contacts_status_label.setEnabled(True)
-                self.tabWidget_settings.setTabEnabled(1, True)
+
                 
                 
                 self.tabWidget_islet_stats.setTabEnabled(1, True)
@@ -1159,6 +1303,7 @@ class Ui_MainWindow(object):
                 self.plot_reconstructed_islet()
                 self.reconstructed_islet_stats(self. post_processed_data)
                 self.processar_output_stats()
+                self.plotOptConvergence()
 
                 
         except Exception as e:
@@ -1558,7 +1703,8 @@ class Ui_MainWindow(object):
         self.network_button.setEnabled(True)
         self.contacts_status_label.setText("Contacts identified")
         self.contacts_status_label.setStyleSheet("color: Green")
-        self.contacts_plot_button.setEnabled(False)
+        self.tabWidget_settings.setTabEnabled(1, True)
+        #self.contacts_plot_button.setEnabled(False)
 
         
     def plot_contacts(self, isletdata):
@@ -1651,7 +1797,7 @@ class Ui_MainWindow(object):
         self.plot_network(G_global, tipo_global)
         self.network_stats(G_global)
         self.network_button.setEnabled(False)
-        self.network_metrics_plots_butthon.setEnabled(True)
+        #self.network_metrics_plots_butthon.setEnabled(True)
 
     def node_colors(self, tipocelulas):
         color_nodos = []
@@ -1712,6 +1858,208 @@ class Ui_MainWindow(object):
         self.diameter_value.setText(str(np.round(diameter_global,5)))
 
 
+    def plotOptConvergence(self):
+
+        optdata = np.loadtxt(self.current_islet_file[:-4]+"_process_log.txt", skiprows=1, usecols=(0,1,2,3,4,5))
+        layout = QtWidgets.QVBoxLayout()
+        self.opt_conv_plot_tab = QtWidgets.QWidget()
+        self.opt_conv_plot_tab.setObjectName("opt_conv_plot_tab")
+        self.opt_conv_plot_tab.setLayout(layout)
+
+        figure = plt.figure()
+        #figure.subplots_adjust(left=0.1, right=0.99, bottom=0.05, top=1.0, wspace=0.2, hspace=0.2)
+        new_canvas = FigureCanvas(figure)
+        new_canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
+        new_canvas.setFocus()
+        
+        
+        plt.plot(np.arange(len(optdata[:,2])), optdata[:,2])
+        #plt.show()
+
+        #ax.mouse_init()
+
+        new_toolbar = NavigationToolbar(new_canvas, self.contacts_plot_tab)
+        unwanted_buttons = ["Subplots"]
+        for x in new_toolbar.actions():
+            if x.text() in unwanted_buttons:
+                new_toolbar.removeAction(x)
+
+        layout.addWidget(new_canvas)
+        layout.addWidget(new_toolbar)
+        #self.tabWidget_stats.addTab(new_tab, "txt")
+        self.tabWidget_Plots.addTab(self.opt_conv_plot_tab, "Convergence")
+        self.toolbar_handles.append(new_toolbar)
+        self.canvases.append(new_canvas)
+        self.figure_handles.append(figure)
+        self.tab_handles.append(self.contacts_plot_tab)    
+
+    
+
+    def open_interaction_strength_dialog(self):
+        Dialog = QtWidgets.QDialog()
+        pars = [self.Kaa, self.Kba, self.Kda, self.Kab, self.Kbb, self.Kdb, self.Kad, self.Kbd, self.Kdd]
+        ui = Ui_interaction_strength_Dialog()
+        ui.setupUi(Dialog, pars)
+        Dialog.exec_()
+
+        if ui.Kaa_value.text() == "":
+            ui.Kaa_value.setText(str(self.Kaa)) 
+        else:
+            self.Kaa = float(ui.Kaa_value.text())
+
+        if ui.Kba_value.text() == "":
+            ui.Kba_value.setText(str(self.Kba)) 
+        else:
+            self.Kba = float(ui.Kba_value.text())
+
+
+        if ui.Kda_value.text() == "":
+            ui.Kda_value.setText(str(self.Kda)) 
+        else:
+            self.Kda = float(ui.Kda_value.text())
+
+
+        if ui.Kab_value.text() == "":
+            ui.Kab_value.setText(str(self.Kab)) 
+        else:
+            self.Kab = float(ui.Kab_value.text())
+
+        if ui.Kbb_value.text() == "":
+            ui.Kbb_value.setText(str(self.Kbb)) 
+        else:
+            self.Kbb = float(ui.Kbb_value.text())
+
+        if ui.Kdb_value.text() == "":
+            ui.Kdb_value.setText(str(self.Kdb)) 
+        else:
+            self.Kdb = float(ui.Kdb_value.text())
+
+
+        if ui.Kad_value.text() == "":
+            ui.Kad_value.setText(str(self.Kad)) 
+        else:
+            self.Kad = float(ui.Kad_value.text())
+
+
+        if ui.Kbd_value.text() == "":
+            ui.Kbd_value.setText(str(self.Kbd)) 
+        else:
+            self.Kbd = float(ui.Kbd_value.text())
+
+
+        if ui.Kdd_value.text() == "":
+            ui.Kdd_value.setText(str(self.Kdd)) 
+        else:
+            self.Kdd = float(ui.Kdd_value.text())
+
+    # def open_interaction_strength_file(self, s):
+    #     #print("click", s)
+    #     dlg = QtWidgets.QFileDialog()
+    #     filename = dlg.getOpenFileName()
+    #     #dlg.setWindowTitle("Hello")
+    #     if filename[0]:
+    #         try:
+    #             self.int_strength_data = np.loadtxt(filename[0])
+    #             self.interaction_strength_file = filename[0]
+    #             # abrevio nombre para mostrar en GUI
+
+    #             self.abbv_int_strength_filename = re.search("(/.*/)(.*)", self.interaction_strength_file)[2]
+    #             #print(self.abbv_filename)
+    #             #print(self.exp_islet_data[:,0])
+    #             #print(self.current_islet_file)
+    #             #self.load_islet_status_label.setText(self.abbv_filename + " loaded succesfully")
+    #             #self.load_islet_status_label.setStyleSheet("color: Green")
+
+
+    #             #self.load_islet_button.setEnabled(False)
+    #             #self.reconstruction_status_label.setEnabled(True)
+    #             #self.reconstruct_button.setEnabled(True)
+    #             #self.tabWidget_islet_stats.setTabEnabled(0, True)
+    #             #self.tabWidget_Plots.setTabEnabled(0, True)
+    #         except: 
+    #             print("Error abriendo interaction strength file")
+    #             #self.load_islet_status_label.setText("Error loading islet file")
+    #             #self.load_islet_status_label.setStyleSheet("color: Red")
+
+
+    def selectInitialPhaseConfig(self):
+        if self.initialphase_constant_radio.isChecked():
+            self.initialphase_type = "Constant"
+            self.open_const_phase_settings()
+            #print(self.initialphase_type)
+        if self.initialphase_random_radio.isChecked():
+            self.initialphase_type = "Random"
+            self.open_rand_phase_settings()
+            #print(self.initialphase_type)
+
+    def selectIntrinsicFreqConfig(self):
+        if self.intrinsicfreq_constant_radio.isChecked():
+            self.intrinsicfreq_type = "Constant"
+            self.open_const_freq_settings()
+            #print(self.intrinsicfreq_type)
+        if self.intrinsicfreq_random_radio.isChecked():
+            self.intrinsicfreq_type = "Random"
+            self.open_rand_freq_settings()
+            #print(self.intrinsicfreq_type)
+
+    def open_const_freq_settings(self):
+        const_freq_dialog = QtWidgets.QDialog()
+        ui = Ui_const_freq_dialog()
+        ui.setupUi(const_freq_dialog, self.constfreq)
+        const_freq_dialog.exec_()
+        #ui.const_freq_value.setText(str(self.constfreq))
+        
+        # preventing empty form
+        if ui.const_freq_value.text() == "":
+            ui.const_freq_value.setText(str(self.constfreq))
+        else:
+            self.constfreq = float(ui.const_freq_value.text())
+
+    def open_const_phase_settings(self):
+        initial_phase_dialog = QtWidgets.QDialog()
+        ui = Ui_const_freq_dialog()
+        ui.setupUi(initial_phase_dialog, self.constphase)
+        initial_phase_dialog.exec_()
+        #ui.const_freq_value.setText(str(self.constphase))
+        # preventing empty form
+        if ui.const_freq_value.text() == "":
+            ui.const_freq_value.setText(str(self.constphase)) 
+        else:
+            self.constphase = float(ui.const_freq_value.text())
+
+
+    def open_rand_freq_settings(self):
+        random_freq_dialog = QtWidgets.QDialog()
+        ui = Ui_random_freq_dialog()
+        ui.setupUi(random_freq_dialog, [self.meanfreq, self.sdfreq])
+        random_freq_dialog.exec_()
+        if ui.mean_value.text() == "":
+            ui.mean_value.setText(str(self.meanfreq)) 
+        else:
+            self.meanfreq = float(ui.mean_value.text())
+
+        if ui.sd_value.text() == "":
+            ui.sd_value.setText(str(self.sdfreq)) 
+        else:
+            self.sdfreq = float(ui.sd_value.text())
+
+    def open_rand_phase_settings(self):
+        random_phase_dialog = QtWidgets.QDialog()
+        ui = Ui_random_freq_dialog()
+        ui.setupUi(random_phase_dialog, [self.meanphase, self.sdphase])
+        random_phase_dialog.exec_()
+        if ui.mean_value.text() == "":
+            ui.mean_value.setText(str(self.meanphase)) 
+        else:
+            self.meanphase = float(ui.mean_value.text())
+
+        if ui.sd_value.text() == "":
+            ui.sd_value.setText(str(self.sdphase)) 
+        else:
+            self.sdphase = float(ui.sd_value.text())
+
+
+
 class Ui_OptLog_Dialog(object):
     def setupUi(self, Dialog, fout):
         Dialog.setObjectName("Dialog")
@@ -1722,11 +2070,11 @@ class Ui_OptLog_Dialog(object):
         self.textEdit.setGeometry(QtCore.QRect(10, 10, 630, 350))
         self.textEdit.setObjectName("textEdit")
         self.runopt_pushButton = QtWidgets.QPushButton(Dialog)
-        self.runopt_pushButton.setGeometry(QtCore.QRect(180, 370, 131, 23))
+        self.runopt_pushButton.setGeometry(QtCore.QRect(180, 365, 131, 23))
         self.runopt_pushButton.setObjectName("runopt_pushButton")
         self.runopt_pushButton.clicked.connect(lambda: self.callProcess(fout))
         self.abortopt_pushbutton = QtWidgets.QPushButton(Dialog)
-        self.abortopt_pushbutton.setGeometry(QtCore.QRect(340, 370, 131, 23))
+        self.abortopt_pushbutton.setGeometry(QtCore.QRect(340, 365, 131, 23))
         self.abortopt_pushbutton.setObjectName("abortopt_pushbutton")
         self.abortopt_pushbutton.clicked.connect(self.abort_opt)
         self.abortopt_pushbutton.clicked.connect(Dialog.reject)
@@ -1766,8 +2114,6 @@ class Ui_OptLog_Dialog(object):
         self.optstatus = 1
         self.abortopt_pushbutton.setEnabled(True)
         self.process.finished.connect(self.process_finished)
-
-    
 
 
     def process_finished(self):
@@ -1926,9 +2272,213 @@ class Ui_reconstruction_settings_diag(object):
         self.rec_settings_contacttol_value.setText(_translate("reconstruction_settings_diag", str(self.diagcontacttol)))
 
 
+class Ui_const_freq_dialog(object):
+    def setupUi(self, const_freq_dialog, constvalue):
+        self.constfreq = constvalue
+        const_freq_dialog.setObjectName("const_freq_dialog")
+        const_freq_dialog.resize(294, 94)
+        const_freq_dialog.setMinimumSize(QtCore.QSize(294, 94))
+        const_freq_dialog.setMaximumSize(QtCore.QSize(294, 94))
+        self.const_freq_buttonBox = QtWidgets.QDialogButtonBox(const_freq_dialog)
+        self.const_freq_buttonBox.setGeometry(QtCore.QRect(-110, 50, 341, 32))
+        self.const_freq_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.const_freq_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.const_freq_buttonBox.setObjectName("const_freq_buttonBox")
+        self.formLayoutWidget = QtWidgets.QWidget(const_freq_dialog)
+        self.formLayoutWidget.setGeometry(QtCore.QRect(10, 10, 271, 31))
+        self.formLayoutWidget.setObjectName("formLayoutWidget")
+        self.formLayout = QtWidgets.QFormLayout(self.formLayoutWidget)
+        self.formLayout.setContentsMargins(0, 0, 0, 0)
+        self.formLayout.setObjectName("formLayout")
+        self.const_freq_label = QtWidgets.QLabel(self.formLayoutWidget)
+        self.const_freq_label.setObjectName("const_freq_label")
+        self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.const_freq_label)
+        self.const_freq_value = QtWidgets.QLineEdit(self.formLayoutWidget)
+        self.const_freq_value.setObjectName("const_freq_value")
+        self.const_freq_value.setText(str(self.constfreq))
+        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.const_freq_value)
+        self.const_freq_value.setText(str(constvalue))
+        self.retranslateUi(const_freq_dialog)
+        self.const_freq_buttonBox.accepted.connect(const_freq_dialog.accept)
+        self.const_freq_buttonBox.rejected.connect(const_freq_dialog.reject)
+        QtCore.QMetaObject.connectSlotsByName(const_freq_dialog)
+
+    def retranslateUi(self, const_freq_dialog):
+        _translate = QtCore.QCoreApplication.translate
+        const_freq_dialog.setWindowTitle(_translate("const_freq_dialog", "Dialog"))
+        self.const_freq_label.setText(_translate("const_freq_dialog", "Constant frequency"))
+
+class Ui_random_freq_dialog(object):
+    def setupUi(self, random_freq_dialog, randompars):
+
+        self.mean = randompars[0]
+        self.sd = randompars[1]
+
+        random_freq_dialog.setObjectName("random_freq_dialog")
+        random_freq_dialog.resize(192, 120)
+        self.buttonBox = QtWidgets.QDialogButtonBox(random_freq_dialog)
+        self.buttonBox.setGeometry(QtCore.QRect(-160, 80, 341, 32))
+        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setObjectName("buttonBox")
+        self.formLayoutWidget = QtWidgets.QWidget(random_freq_dialog)
+        self.formLayoutWidget.setGeometry(QtCore.QRect(10, 10, 171, 61))
+        self.formLayoutWidget.setObjectName("formLayoutWidget")
+        self.formLayout = QtWidgets.QFormLayout(self.formLayoutWidget)
+        self.formLayout.setContentsMargins(0, 0, 0, 0)
+        self.formLayout.setObjectName("formLayout")
+        self.mean_label = QtWidgets.QLabel(self.formLayoutWidget)
+        self.mean_label.setObjectName("mean_label")
+        self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.mean_label)
+        self.mean_value = QtWidgets.QLineEdit(self.formLayoutWidget)
+        self.mean_value.setObjectName("mean_value")
+        self.mean_value.setText(str(self.mean))
+        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.mean_value)
+        self.sd_label = QtWidgets.QLabel(self.formLayoutWidget)
+        self.sd_label.setObjectName("sd_label")
+        self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.sd_label)
+        self.sd_value = QtWidgets.QLineEdit(self.formLayoutWidget)
+        self.sd_value.setObjectName("sd_value")
+        self.sd_value.setText(str(self.sd))
+        self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.sd_value)
+
+        self.retranslateUi(random_freq_dialog)
+        self.buttonBox.accepted.connect(random_freq_dialog.accept)
+        self.buttonBox.rejected.connect(random_freq_dialog.reject)
+        QtCore.QMetaObject.connectSlotsByName(random_freq_dialog)
+
+    def retranslateUi(self, random_freq_dialog):
+        _translate = QtCore.QCoreApplication.translate
+        random_freq_dialog.setWindowTitle(_translate("random_freq_dialog", "Random frequency"))
+        self.mean_label.setText(_translate("random_freq_dialog", "Mean"))
+        self.sd_label.setText(_translate("random_freq_dialog", "SD"))
+
+class Ui_interaction_strength_Dialog(object):
+    def setupUi(self, Dialog, int_strength_pars):
+        self.Kaa = int_strength_pars[0]
+        self.Kba = int_strength_pars[1]
+        self.Kda = int_strength_pars[2]
+        self.Kab = int_strength_pars[3]
+        self.Kbb = int_strength_pars[4]
+        self.Kdb = int_strength_pars[5]
+        self.Kad = int_strength_pars[6]
+        self.Kbd = int_strength_pars[7]
+        self.Kdd = int_strength_pars[8]
 
 
 
+        Dialog.setObjectName("Dialog")
+        Dialog.resize(208, 340)
+        self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
+        self.buttonBox.setGeometry(QtCore.QRect(28, 300, 150, 32))
+        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setObjectName("buttonBox_int_strength_dialog")
+        self.formLayoutWidget = QtWidgets.QWidget(Dialog)
+        self.formLayoutWidget.setGeometry(QtCore.QRect(0, 10, 201, 291))
+        self.formLayoutWidget.setObjectName("formLayoutWidget")
+        self.formLayout = QtWidgets.QFormLayout(self.formLayoutWidget)
+        self.formLayout.setContentsMargins(0, 0, 0, 0)
+        self.formLayout.setObjectName("formLayout_int_strength")
+        self.Kaa_value = QtWidgets.QLineEdit(self.formLayoutWidget)
+        self.Kaa_value.setAlignment(QtCore.Qt.AlignCenter)
+        self.Kaa_value.setObjectName("Kaa_value")
+        self.Kaa_value.setText(str(self.Kaa))
+        self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.Kaa_value)
+        self.Kba_label = QtWidgets.QLabel(self.formLayoutWidget)
+        self.Kba_label.setObjectName("Kba_label")
+        self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.Kba_label)
+        self.Kba_value = QtWidgets.QLineEdit(self.formLayoutWidget)
+        self.Kba_value.setAlignment(QtCore.Qt.AlignCenter)
+        self.Kba_value.setObjectName("Kba_value")
+        self.Kba_value.setText(str(self.Kba))
+        self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.Kba_value)
+        self.Kaa_label = QtWidgets.QLabel(self.formLayoutWidget)
+        self.Kaa_label.setObjectName("Kaa_label")
+        self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.Kaa_label)
+        self.Kda_value = QtWidgets.QLineEdit(self.formLayoutWidget)
+        self.Kda_value.setAlignment(QtCore.Qt.AlignCenter)
+        self.Kda_value.setObjectName("Kda_value")
+        self.Kda_value.setText(str(self.Kda))
+        self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.Kda_value)
+        self.Kda_label = QtWidgets.QLabel(self.formLayoutWidget)
+        self.Kda_label.setObjectName("Kda_label")
+        self.formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.Kda_label)
+        self.Kab_label = QtWidgets.QLabel(self.formLayoutWidget)
+        self.Kab_label.setObjectName("Kab_label")
+        self.formLayout.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.Kab_label)
+        self.Kbb_label = QtWidgets.QLabel(self.formLayoutWidget)
+        self.Kbb_label.setObjectName("Kbb_label")
+        self.formLayout.setWidget(5, QtWidgets.QFormLayout.LabelRole, self.Kbb_label)
+        self.Kdb_label = QtWidgets.QLabel(self.formLayoutWidget)
+        self.Kdb_label.setObjectName("Kdb_label")
+        self.formLayout.setWidget(6, QtWidgets.QFormLayout.LabelRole, self.Kdb_label)
+        self.Kad_label = QtWidgets.QLabel(self.formLayoutWidget)
+        self.Kad_label.setObjectName("Kad_label")
+        self.formLayout.setWidget(7, QtWidgets.QFormLayout.LabelRole, self.Kad_label)
+        self.Kbd_label = QtWidgets.QLabel(self.formLayoutWidget)
+        self.Kbd_label.setObjectName("Kbd_label")
+        self.formLayout.setWidget(8, QtWidgets.QFormLayout.LabelRole, self.Kbd_label)
+        self.Kdd_label = QtWidgets.QLabel(self.formLayoutWidget)
+        self.Kdd_label.setObjectName("Kdd_label")
+        self.formLayout.setWidget(9, QtWidgets.QFormLayout.LabelRole, self.Kdd_label)
+        self.Kab_value = QtWidgets.QLineEdit(self.formLayoutWidget)
+        self.Kab_value.setAlignment(QtCore.Qt.AlignCenter)
+        self.Kab_value.setObjectName("Kab_value")
+        self.Kab_value.setText(str(self.Kab))
+        self.formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.Kab_value)
+        self.Kbb_value = QtWidgets.QLineEdit(self.formLayoutWidget)
+        self.Kbb_value.setAlignment(QtCore.Qt.AlignCenter)
+        self.Kbb_value.setObjectName("Kbb_value")
+        self.Kbb_value.setText(str(self.Kbb))
+        self.formLayout.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.Kbb_value)
+        self.Kdb_value = QtWidgets.QLineEdit(self.formLayoutWidget)
+        self.Kdb_value.setAlignment(QtCore.Qt.AlignCenter)
+        self.Kdb_value.setObjectName("Kdb_value")
+        self.Kdb_value.setText(str(self.Kdb))
+        self.formLayout.setWidget(6, QtWidgets.QFormLayout.FieldRole, self.Kdb_value)
+        self.Kad_value = QtWidgets.QLineEdit(self.formLayoutWidget)
+        self.Kad_value.setAlignment(QtCore.Qt.AlignCenter)
+        self.Kad_value.setObjectName("Kad_value")
+        self.Kad_value.setText(str(self.Kad))
+        self.formLayout.setWidget(7, QtWidgets.QFormLayout.FieldRole, self.Kad_value)
+        self.Kbd_value = QtWidgets.QLineEdit(self.formLayoutWidget)
+        self.Kbd_value.setAlignment(QtCore.Qt.AlignCenter)
+        self.Kbd_value.setObjectName("Kbd_value")
+        self.Kbd_value.setText(str(self.Kbd))
+        self.formLayout.setWidget(8, QtWidgets.QFormLayout.FieldRole, self.Kbd_value)
+        self.Kdd_value = QtWidgets.QLineEdit(self.formLayoutWidget)
+        self.Kdd_value.setAlignment(QtCore.Qt.AlignCenter)
+        self.Kdd_value.setObjectName("Kdd_value")
+        self.Kdd_value.setText(str(self.Kdd))
+        self.formLayout.setWidget(9, QtWidgets.QFormLayout.FieldRole, self.Kdd_value)
+
+        self.retranslateUi(Dialog)
+        self.buttonBox.accepted.connect(Dialog.accept)
+        self.buttonBox.rejected.connect(Dialog.reject)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+    def retranslateUi(self, Dialog):
+        _translate = QtCore.QCoreApplication.translate
+        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        #self.Kaa_value.setText(_translate("Dialog", str(self.Kaa)))
+        self.Kba_label.setText(_translate("Dialog", "Kba"))
+        #self.Kba_value.setText(_translate("Dialog", str(self.Kba)))
+        self.Kaa_label.setText(_translate("Dialog", "Kaa"))
+        #self.Kda_value.setText(_translate("Dialog", str(self.Kda)))
+        self.Kda_label.setText(_translate("Dialog", "Kda"))
+        self.Kab_label.setText(_translate("Dialog", "Kab"))
+        self.Kbb_label.setText(_translate("Dialog", "Kbb"))
+        self.Kdb_label.setText(_translate("Dialog", "Kdb"))
+        self.Kad_label.setText(_translate("Dialog", "Kad"))
+        self.Kbd_label.setText(_translate("Dialog", "Kbd"))
+        self.Kdd_label.setText(_translate("Dialog", "Kdd"))
+        #self.Kab_value.setText(_translate("Dialog", str(self.Kab)))
+        #self.Kbb_value.setText(_translate("Dialog", str(self.Kbb)))
+        #self.Kdb_value.setText(_translate("Dialog", str(self.Kdb)))
+        #self.Kad_value.setText(_translate("Dialog", str(self.Kad)))
+        #self.Kbd_value.setText(_translate("Dialog", str(self.Kbd)))
+        #self.Kdd_value.setText(_translate("Dialog", str(self.Kdd)))
 
 if __name__ == "__main__":
     import sys

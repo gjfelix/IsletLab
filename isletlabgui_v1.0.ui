@@ -48,7 +48,7 @@
      <string extracomment="Settings tab"/>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="reconstructing_tab">
      <attribute name="title">
@@ -1865,6 +1865,9 @@
     </property>
     <property name="currentIndex">
      <number>0</number>
+    </property>
+    <property name="tabsClosable">
+     <bool>false</bool>
     </property>
     <widget class="QWidget" name="initial_islet_plot_tab">
      <attribute name="title">
