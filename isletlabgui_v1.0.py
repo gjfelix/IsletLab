@@ -58,6 +58,7 @@ class Ui_MainWindow(object):
         MainWindow.setMaximumSize(QtCore.QSize(1024, 769))
         MainWindow.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
         
+        reg_ex_numeros = QtCore.QRegExp("[+]?[0-9]*\.?[0-9]+")
 
         
         # Para agregar figuras en pestañas
@@ -776,6 +777,8 @@ class Ui_MainWindow(object):
         self.total_time_lineedit.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.total_time_lineedit.setObjectName("total_time_lineedit")
         self.total_time_lineedit.setText(str(self.totaltimesim))
+        total_time_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.total_time_lineedit)
+        self.total_time_lineedit.setValidator(total_time_validator)
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.total_time_lineedit)
         self.sim_timestep_label = QtWidgets.QLabel(self.formLayoutWidget)
         self.sim_timestep_label.setObjectName("sim_timestep_label")
@@ -783,6 +786,9 @@ class Ui_MainWindow(object):
         self.timestep_lineedit = QtWidgets.QLineEdit(self.formLayoutWidget)
         self.timestep_lineedit.setObjectName("timestep_lineedit")
         self.timestep_lineedit.setText(str(self.dtsim))
+        # para validacion de entradas solo numeros
+        timestep_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.timestep_lineedit)
+        self.timestep_lineedit.setValidator(timestep_validator)
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.timestep_lineedit)
         self.run_simulation_button = QtWidgets.QPushButton(self.simulation_tab)
         self.run_simulation_button.setGeometry(QtCore.QRect(10, 490, 321, 81))
@@ -2275,6 +2281,9 @@ class Ui_reconstruction_settings_diag(object):
 class Ui_const_freq_dialog(object):
     def setupUi(self, const_freq_dialog, constvalue):
         self.constfreq = constvalue
+
+        # para validacion de entradas solo numeros
+        reg_ex_numeros = QtCore.QRegExp("[+]?[0-9]*\.?[0-9]+")
         const_freq_dialog.setObjectName("const_freq_dialog")
         const_freq_dialog.resize(294, 94)
         const_freq_dialog.setMinimumSize(QtCore.QSize(294, 94))
@@ -2296,8 +2305,10 @@ class Ui_const_freq_dialog(object):
         self.const_freq_value = QtWidgets.QLineEdit(self.formLayoutWidget)
         self.const_freq_value.setObjectName("const_freq_value")
         self.const_freq_value.setText(str(self.constfreq))
+        freq_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.const_freq_value)
+        self.const_freq_value.setValidator(freq_validator)
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.const_freq_value)
-        self.const_freq_value.setText(str(constvalue))
+        #self.const_freq_value.setText(str(constvalue))
         self.retranslateUi(const_freq_dialog)
         self.const_freq_buttonBox.accepted.connect(const_freq_dialog.accept)
         self.const_freq_buttonBox.rejected.connect(const_freq_dialog.reject)
@@ -2305,14 +2316,18 @@ class Ui_const_freq_dialog(object):
 
     def retranslateUi(self, const_freq_dialog):
         _translate = QtCore.QCoreApplication.translate
-        const_freq_dialog.setWindowTitle(_translate("const_freq_dialog", "Dialog"))
+        const_freq_dialog.setWindowTitle(_translate("const_freq_dialog", "Constant frequency"))
         self.const_freq_label.setText(_translate("const_freq_dialog", "Constant frequency"))
+
 
 class Ui_random_freq_dialog(object):
     def setupUi(self, random_freq_dialog, randompars):
 
         self.mean = randompars[0]
         self.sd = randompars[1]
+
+        # para validacion de entradas solo numeros
+        reg_ex_numeros = QtCore.QRegExp("[+]?[0-9]*\.?[0-9]+")
 
         random_freq_dialog.setObjectName("random_freq_dialog")
         random_freq_dialog.resize(192, 120)
@@ -2333,6 +2348,8 @@ class Ui_random_freq_dialog(object):
         self.mean_value = QtWidgets.QLineEdit(self.formLayoutWidget)
         self.mean_value.setObjectName("mean_value")
         self.mean_value.setText(str(self.mean))
+        mean_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.mean_value)
+        self.mean_value.setValidator(mean_validator)
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.mean_value)
         self.sd_label = QtWidgets.QLabel(self.formLayoutWidget)
         self.sd_label.setObjectName("sd_label")
@@ -2340,6 +2357,8 @@ class Ui_random_freq_dialog(object):
         self.sd_value = QtWidgets.QLineEdit(self.formLayoutWidget)
         self.sd_value.setObjectName("sd_value")
         self.sd_value.setText(str(self.sd))
+        sd_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.sd_value)
+        self.sd_value.setValidator(sd_validator)
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.sd_value)
 
         self.retranslateUi(random_freq_dialog)
@@ -2365,17 +2384,18 @@ class Ui_interaction_strength_Dialog(object):
         self.Kbd = int_strength_pars[7]
         self.Kdd = int_strength_pars[8]
 
-
+        # para validacion de entradas solo numeros
+        reg_ex_numeros = QtCore.QRegExp("[+]?[0-9]*\.?[0-9]+")
 
         Dialog.setObjectName("Dialog")
-        Dialog.resize(208, 340)
+        Dialog.resize(232, 340)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
-        self.buttonBox.setGeometry(QtCore.QRect(28, 300, 150, 32))
+        self.buttonBox.setGeometry(QtCore.QRect(41, 300, 150, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox_int_strength_dialog")
         self.formLayoutWidget = QtWidgets.QWidget(Dialog)
-        self.formLayoutWidget.setGeometry(QtCore.QRect(0, 10, 201, 291))
+        self.formLayoutWidget.setGeometry(QtCore.QRect(30, 10, 161, 291))
         self.formLayoutWidget.setObjectName("formLayoutWidget")
         self.formLayout = QtWidgets.QFormLayout(self.formLayoutWidget)
         self.formLayout.setContentsMargins(0, 0, 0, 0)
@@ -2384,6 +2404,8 @@ class Ui_interaction_strength_Dialog(object):
         self.Kaa_value.setAlignment(QtCore.Qt.AlignCenter)
         self.Kaa_value.setObjectName("Kaa_value")
         self.Kaa_value.setText(str(self.Kaa))
+        Kaa_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.Kaa_value)
+        self.Kaa_value.setValidator(Kaa_validator)
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.Kaa_value)
         self.Kba_label = QtWidgets.QLabel(self.formLayoutWidget)
         self.Kba_label.setObjectName("Kba_label")
@@ -2392,6 +2414,8 @@ class Ui_interaction_strength_Dialog(object):
         self.Kba_value.setAlignment(QtCore.Qt.AlignCenter)
         self.Kba_value.setObjectName("Kba_value")
         self.Kba_value.setText(str(self.Kba))
+        Kba_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.Kba_value)
+        self.Kba_value.setValidator(Kba_validator)
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.Kba_value)
         self.Kaa_label = QtWidgets.QLabel(self.formLayoutWidget)
         self.Kaa_label.setObjectName("Kaa_label")
@@ -2400,6 +2424,8 @@ class Ui_interaction_strength_Dialog(object):
         self.Kda_value.setAlignment(QtCore.Qt.AlignCenter)
         self.Kda_value.setObjectName("Kda_value")
         self.Kda_value.setText(str(self.Kda))
+        Kda_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.Kda_value)
+        self.Kda_value.setValidator(Kda_validator)
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.Kda_value)
         self.Kda_label = QtWidgets.QLabel(self.formLayoutWidget)
         self.Kda_label.setObjectName("Kda_label")
@@ -2426,31 +2452,43 @@ class Ui_interaction_strength_Dialog(object):
         self.Kab_value.setAlignment(QtCore.Qt.AlignCenter)
         self.Kab_value.setObjectName("Kab_value")
         self.Kab_value.setText(str(self.Kab))
+        Kab_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.Kab_value)
+        self.Kab_value.setValidator(Kab_validator)
         self.formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.Kab_value)
         self.Kbb_value = QtWidgets.QLineEdit(self.formLayoutWidget)
         self.Kbb_value.setAlignment(QtCore.Qt.AlignCenter)
         self.Kbb_value.setObjectName("Kbb_value")
         self.Kbb_value.setText(str(self.Kbb))
+        Kbb_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.Kbb_value)
+        self.Kbb_value.setValidator(Kbb_validator)
         self.formLayout.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.Kbb_value)
         self.Kdb_value = QtWidgets.QLineEdit(self.formLayoutWidget)
         self.Kdb_value.setAlignment(QtCore.Qt.AlignCenter)
         self.Kdb_value.setObjectName("Kdb_value")
         self.Kdb_value.setText(str(self.Kdb))
+        Kdb_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.Kdb_value)
+        self.Kdb_value.setValidator(Kdb_validator)
         self.formLayout.setWidget(6, QtWidgets.QFormLayout.FieldRole, self.Kdb_value)
         self.Kad_value = QtWidgets.QLineEdit(self.formLayoutWidget)
         self.Kad_value.setAlignment(QtCore.Qt.AlignCenter)
         self.Kad_value.setObjectName("Kad_value")
         self.Kad_value.setText(str(self.Kad))
+        Kad_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.Kad_value)
+        self.Kad_value.setValidator(Kad_validator)
         self.formLayout.setWidget(7, QtWidgets.QFormLayout.FieldRole, self.Kad_value)
         self.Kbd_value = QtWidgets.QLineEdit(self.formLayoutWidget)
         self.Kbd_value.setAlignment(QtCore.Qt.AlignCenter)
         self.Kbd_value.setObjectName("Kbd_value")
         self.Kbd_value.setText(str(self.Kbd))
+        Kbd_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.Kbd_value)
+        self.Kbd_value.setValidator(Kbd_validator)
         self.formLayout.setWidget(8, QtWidgets.QFormLayout.FieldRole, self.Kbd_value)
         self.Kdd_value = QtWidgets.QLineEdit(self.formLayoutWidget)
         self.Kdd_value.setAlignment(QtCore.Qt.AlignCenter)
         self.Kdd_value.setObjectName("Kdd_value")
         self.Kdd_value.setText(str(self.Kdd))
+        Kdd_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.Kdd_value)
+        self.Kdd_value.setValidator(Kdd_validator)
         self.formLayout.setWidget(9, QtWidgets.QFormLayout.FieldRole, self.Kdd_value)
 
         self.retranslateUi(Dialog)
@@ -2460,7 +2498,7 @@ class Ui_interaction_strength_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "Interaction strength"))
         #self.Kaa_value.setText(_translate("Dialog", str(self.Kaa)))
         self.Kba_label.setText(_translate("Dialog", "Kba"))
         #self.Kba_value.setText(_translate("Dialog", str(self.Kba)))
