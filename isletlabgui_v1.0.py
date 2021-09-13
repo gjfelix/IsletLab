@@ -90,6 +90,7 @@ class Ui_MainWindow(object):
         self.sdphase = self.meanphase/10.
         self.totaltimesim = 1000.0
         self.dtsim = 0.1
+        self.saveMultiple = 5000
 
         # interaction strength parameters (kuramoto oscilators)
         self.Kaa = 1.0
@@ -101,6 +102,11 @@ class Ui_MainWindow(object):
         self.Kad = -1.0
         self.Kbd = -1.0
         self.Kdd = 1.0
+
+        # Simulation settings (CUDA settings)
+        self.nblocks = 30
+        self.ncudathreads = 64
+        self.maxVecinos = 10
 
         #self.message_obj = Message()
 
@@ -780,6 +786,7 @@ class Ui_MainWindow(object):
         total_time_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.total_time_lineedit)
         self.total_time_lineedit.setValidator(total_time_validator)
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.total_time_lineedit)
+        
         self.sim_timestep_label = QtWidgets.QLabel(self.formLayoutWidget)
         self.sim_timestep_label.setObjectName("sim_timestep_label")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.sim_timestep_label)
@@ -790,14 +797,37 @@ class Ui_MainWindow(object):
         timestep_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.timestep_lineedit)
         self.timestep_lineedit.setValidator(timestep_validator)
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.timestep_lineedit)
+        
+        self.save_mult_label = QtWidgets.QLabel(self.formLayoutWidget)
+        self.save_mult_label.setObjectName("save_mult_label")
+        self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.save_mult_label)
+        self.save_mult_lineedit = QtWidgets.QLineEdit(self.formLayoutWidget)
+        self.save_mult_lineedit.setObjectName("timestep_lineedit")
+        self.save_mult_lineedit.setText(str(self.saveMultiple))
+        # para validacion de entradas solo numeros
+        save_mult_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.save_mult_lineedit)
+        self.save_mult_lineedit.setValidator(save_mult_validator)
+        self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.save_mult_lineedit)
+
+
         self.run_simulation_button = QtWidgets.QPushButton(self.simulation_tab)
         self.run_simulation_button.setGeometry(QtCore.QRect(10, 490, 321, 81))
+        self.run_simulation_button.clicked.connect(self.run_kuramoto_simulation)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.run_simulation_button.sizePolicy().hasHeightForWidth())
         self.run_simulation_button.setSizePolicy(sizePolicy)
         self.run_simulation_button.setObjectName("run_simulation_button")
+
+
+        self.sim_status_label = QtWidgets.QLabel(self.simulation_tab)
+        self.sim_status_label.setObjectName("save_mult_label")
+        self.sim_status_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.sim_status_label.setEnabled(True)
+        self.sim_status_label.setGeometry(QtCore.QRect(10, 580, 321, 16))
+        #self.sim_status_label.setText("Test Label")
+
         self.tabWidget_settings.addTab(self.simulation_tab, "")
         self.tabWidget_Plots = QtWidgets.QTabWidget(self.centralwidget)
         self.tabWidget_Plots.setGeometry(QtCore.QRect(342, 1, 681, 725))
@@ -1024,6 +1054,7 @@ class Ui_MainWindow(object):
         self.sim_settings_groupbox.setTitle(_translate("MainWindow", "Simulation settings"))
         self.sim_total_time_label.setText(_translate("MainWindow", "Total time"))
         self.sim_timestep_label.setText(_translate("MainWindow", "Time step"))
+        self.save_mult_label.setText(_translate("MainWindow", "Save mult"))
         self.run_simulation_button.setText(_translate("MainWindow", "Run Simulation"))
         self.tabWidget_settings.setTabText(self.tabWidget_settings.indexOf(self.simulation_tab), _translate("MainWindow", "Simulation"))
         self.tabWidget_Plots.setTabText(self.tabWidget_Plots.indexOf(self.initial_islet_plot_tab), _translate("MainWindow", "Initial Islet"))
@@ -2065,6 +2096,155 @@ class Ui_MainWindow(object):
             self.sdphase = float(ui.sd_value.text())
 
 
+    def generate_Kmatrix(self):
+        try:
+            '''
+            Load cell-to-cell contact file from reconstructed islet
+            '''
+            global_contacts = np.loadtxt(self.current_islet_file[:-4]+"_all_contacts.txt")
+            # numero de celulas en islote
+            ncells = len(global_contacts)
+        except: 
+            self.sim_status_label.setText("Error loading cell-to-cell contacts")
+
+        try:
+
+            # genero matriz en blanco para guardar Kij
+            Kmat = np.zeros([ncells, ncells])
+            n_vecinos_vec = np.zeros(ncells)
+            for i in np.arange(ncells):
+                n_vecinos_cell_i = 0
+                cell1 = global_contacts[i,i]
+                for j in np.arange(ncells):
+                    cell2 = global_contacts[j,j]
+                    # Para considerar interacciones de la celula con ella misma:
+                    #if global_contacts[i,j] != 0.0:
+
+                   
+                    # Para considerar solo interacciones con vecinas.
+                    if global_contacts[i,j] == 1.0:
+                        n_vecinos_cell_i = n_vecinos_cell_i + 1
+                        #print(global_contacts[i,j])
+                        if cell1 == 12. and cell2 == 12.:
+                            Kmat[i,j] = self.Kbb
+                        elif cell1 == 12. and cell2 == 11.:
+                            Kmat[i,j] = self.Kba
+                        elif cell1 == 11. and cell2 == 11.:
+                            Kmat[i,j] = self.Kaa
+                        elif cell1 == 11. and cell2 == 12.:
+                            Kmat[i,j] = self.Kab
+                        elif cell1 == 13. and cell2 == 13.:
+                            Kmat[i,j] = self.Kdd
+                        elif cell1 == 13. and cell2 == 12.:
+                            Kmat[i,j] = self.Kdb
+                        elif cell1 == 12. and cell2 == 13.:
+                            Kmat[i,j] = self.Kbd
+                        elif cell1 == 13. and cell2 == 11.:
+                            Kmat[i,j] = self.Kda
+                        elif cell1 == 11. and cell2 == 13.:
+                            Kmat[i,j] = self.Kad
+                    else:
+                        continue
+                    n_vecinos_vec[i] = n_vecinos_cell_i
+        except:
+            self.sim_status_label.setText("Error generating K matrix")
+        np.savetxt(self.current_islet_file[:-4] + '_Kmat.txt', Kmat, delimiter = ' ', fmt='%1.3f')
+        #return global_contacts, Kmat, n_vecinos_vec
+        return ncells
+
+
+
+
+    def generate_cuda_code(self, ncells):
+        # extract simulation parameters
+        if self.total_time_lineedit.text() == "":
+            self.total_time_lineedit.setText(str(self.totaltimesim))
+        else: 
+            self.totaltimesim = float(self.total_time_lineedit.text())
+
+        if self.timestep_lineedit.text()== "":
+            self.timestep_lineedit.setText(str(self.dtsim))
+        else:
+            self.dtsim = float(self.timestep_lineedit.text())
+        try:
+            # base cuda code
+            fsource = open('kuramoto_islets.cu')
+            # output cuda file
+            fout = self.current_islet_file[:-4] + "_kuramoto_sim.cu"
+            # open output file
+            fsalida = open(fout, "w")
+            # read source cuda file
+            lines = fsource.readlines()
+            lines[20] = "#define totalCelulas " + str(ncells) +"\n"
+            lines[25] = "#define saveMultiple " + str(self.saveMultiple) +"\n"
+            lines[29] = "const int numBlocks = " + str(self.nblocks) + ";\n"
+            lines[30] = "const int threadsPerBlock = " + str(self.ncudathreads) + ";\n"
+            lines[139] = 'fp = fopen("' + self.current_islet_file[:-4] + '_all_contacts.txt" ,"r");\n' 
+
+            if self.initialphase_constant_radio.isChecked():
+                lines[231] = "theta ="  +str(self.constphase)+";\n"
+
+            if self.initialphase_random_radio.isChecked():
+                lines[231] = "theta = 2 * PI * get_random();\n"
+
+
+            if self.intrinsicfreq_constant_radio.isChecked():
+                lines[235] ="         frec = " +str(self.constfreq) + ";\n"
+            
+            if self.intrinsicfreq_random_radio.isChecked():
+                lines[235] = "        frec = rand_normal("+str(self.meanfreq)+","+ str(self.sdfreq) +");\n"
+
+
+            lines[247] = 'fp = fopen("' + self.current_islet_file[:-4] + '_Kmat.txt", "r");\n'
+            lines[326] = 'double Tf = ' + str(self.totaltimesim) +";\n"
+            lines[329] = 'double dt = ' + str(self.dtsim)+";\n"
+            lines[333] = 'FILE *salidaAngulosIslote = fopen("'+self.current_islet_file[:-4] +'_kuramoto_angles.data", "w");\n'
+            lines[362] = "if (indice % "+ str(self.saveMultiple)+ " == 0){\n"
+            #escribo archivo de salida
+            for line in lines:
+                fsalida.write(line)
+                
+            fsalida.close()
+            fsource.close()
+        except:
+            self.sim_status_label.setText("Error generating cuda code")
+
+    def compile_cuda_code(self):
+        try:
+            subprocess.run(["nvcc", self.current_islet_file[:-4] + "_kuramoto_sim.cu" , "-o", self.current_islet_file[:-4] + "_kuramoto_sim"])
+            #print("compilation success")
+        except:
+            #print("CUDA compilation failed")
+            self.sim_status_label.setText("Error compiling cuda code")
+
+
+    def launch_cudasim_window(self, fout):
+        Dialog1 = QtWidgets.QDialog()
+        ui1 = Ui_OptLog_Dialog()
+        ui1.setupUi(Dialog1, fout)
+        Dialog1.exec_()
+        Dialog1.reject()
+        return ui1.optstatus, ui1.computing_time_processed
+
+    def run_kuramoto_simulation(self):
+        # Generate K matrix
+        ncells = self.generate_Kmatrix()
+        #print("K matrix generada")
+
+        self.generate_cuda_code(ncells)
+        #print("Cuda code generado")
+
+        self.compile_cuda_code()
+        #print("Cuda code compilado")
+
+        #print(self.current_islet_file[:-4]+"_kuramoto_sim")
+        try:
+            self.launch_cudasim_window(self.current_islet_file[:-4] + "_kuramoto_sim..")
+        except:
+            self.sim_status_label.setText("Error executing cuda simulation")
+        
+
+
 
 class Ui_OptLog_Dialog(object):
     def setupUi(self, Dialog, fout):
@@ -2105,6 +2285,7 @@ class Ui_OptLog_Dialog(object):
     def abort_opt(self, Dialog):
         self.process.kill()
         self.optstatus = 0
+        self.computing_time_processed = [0,0,0]
         #self.runopt_pushButton.setEnabled(True)
         #self.abortopt_pushbutton.setEnabled(False)
         #status = {self.process.NotRunning: "Not Running", self.process.Starting: "Starting", self.process.Running: "Running"}
@@ -2114,9 +2295,10 @@ class Ui_OptLog_Dialog(object):
 
     def callProcess(self, fout):
         self.opt_start_time = datetime.now()
-        #print(self.process.stateChanged)
+        print(self.opt_start_time)
         self.runopt_pushButton.setEnabled(False)
         self.process.start(fout[:-2])
+        print("Proceso iniciado")
         self.optstatus = 1
         self.abortopt_pushbutton.setEnabled(True)
         self.process.finished.connect(self.process_finished)

@@ -20,7 +20,7 @@ struct tm * timeinfo;
 
 // Numero de celulas en archivo de Islote
 #define numCells 588
-#define NUMHILOS 6
+#define NUMHILOS 16
 
 //struct islote{
 //	int n_celula;
