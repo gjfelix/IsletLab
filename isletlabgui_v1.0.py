@@ -1355,7 +1355,7 @@ class Ui_MainWindow(object):
     def launch_opt_window(self, fout):
         Dialog = QtWidgets.QDialog()
         ui = Ui_OptLog_Dialog()
-        ui.setupUi(Dialog, fout)
+        ui.setupUi(Dialog, fout, "Optimization Log")
         Dialog.exec_()
         Dialog.reject()
         return ui.optstatus, ui.computing_time_processed
@@ -1454,20 +1454,20 @@ class Ui_MainWindow(object):
     
 
     def calculate_volumes(self, finalisletdata):
-        ind_alfas = np.where(finalisletdata[:,2] == 11.)[0]
-        ind_betas = np.where(finalisletdata[:,2] == 12.)[0]
-        ind_deltas = np.where(finalisletdata[:,2] == 13.)[0]
+        self.ind_alfas = np.where(finalisletdata[:,2] == 11.)[0]
+        self.ind_betas = np.where(finalisletdata[:,2] == 12.)[0]
+        self.ind_deltas = np.where(finalisletdata[:,2] == 13.)[0]
         volcells = 4./3.*np.pi*finalisletdata[:,0]
         totalvol = np.sum(volcells)
         self.fin_total_vol_value.setText('{:.1e}'.format(Decimal(totalvol)))
         self.fin_total_vol_perc.setText('100.0 %')
-        volalfas = np.sum(volcells[ind_alfas])
+        volalfas = np.sum(volcells[self.ind_alfas])
         self.fin_alpha_vol_value.setText('{:.1e}'.format(Decimal(volalfas)))
         self.fin_alpha_vol_perc.setText(str(np.round(volalfas*100./totalvol,2))+' %')
-        volbetas = np.sum(volcells[ind_betas])
+        volbetas = np.sum(volcells[self.ind_betas])
         self.fin_beta_vol_value.setText('{:.1e}'.format(Decimal(volbetas)))
         self.fin_beta_vol_perc.setText(str(np.round(volbetas*100./totalvol,2))+' %')
-        voldeltas = np.sum(volcells[ind_deltas])
+        voldeltas = np.sum(volcells[self.ind_deltas])
         self.fin_delta_vol_value.setText('{:.1e}'.format(Decimal(voldeltas)))
         self.fin_delta_vol_perc.setText(str(np.round(voldeltas*100./totalvol,2))+' %')
 
@@ -1928,8 +1928,8 @@ class Ui_MainWindow(object):
         self.toolbar_handles.append(new_toolbar)
         self.canvases.append(new_canvas)
         self.figure_handles.append(figure)
-        self.tab_handles.append(self.contacts_plot_tab)    
-
+        #self.tab_handles.append(self.contacts_plot_tab)    
+        self.tab_handles.append(self.opt_conv_plot_tab)
     
 
     def open_interaction_strength_dialog(self):
@@ -2221,7 +2221,7 @@ class Ui_MainWindow(object):
     def launch_cudasim_window(self, fout):
         Dialog1 = QtWidgets.QDialog()
         ui1 = Ui_OptLog_Dialog()
-        ui1.setupUi(Dialog1, fout)
+        ui1.setupUi(Dialog1, fout, "Simulation log")
         Dialog1.exec_()
         Dialog1.reject()
         return ui1.optstatus, ui1.computing_time_processed
@@ -2231,27 +2231,109 @@ class Ui_MainWindow(object):
         ncells = self.generate_Kmatrix()
         #print("K matrix generada")
 
+        self.sim_status_label.setText("Generating CUDA code")
+        self.sim_status_label.setStyleSheet("color: Green")
         self.generate_cuda_code(ncells)
         #print("Cuda code generado")
 
+        self.sim_status_label.setText("Compiling CUDA code")
+        self.sim_status_label.setStyleSheet("color: Green")
         self.compile_cuda_code()
         #print("Cuda code compilado")
 
         #print(self.current_islet_file[:-4]+"_kuramoto_sim")
         try:
+            self.sim_status_label.setText("Simulating...")
+            self.sim_status_label.setStyleSheet("color: Green")
             self.launch_cudasim_window(self.current_islet_file[:-4] + "_kuramoto_sim..")
+            self.sim_status_label.setText("Simulation completed")
         except:
             self.sim_status_label.setText("Error executing cuda simulation")
+            self.sim_status_label.setStyleSheet("color:Red")
+    
         
+        self.plot_kuramoto_results()
+        
+        
+
+    def phase_coherence(self, angles_vec):
+        '''
+        Compute global order parameter R_t - mean length of resultant vector
+        '''
+        suma = sum([(np.e ** (1j * 2*i)) for i in angles_vec])
+        return abs(suma / len(angles_vec))
+
+    # def ave_phase_coherence(self, data, muestras):
+    #     rt = np.zeros(muestras)
+    #     i = 0
+    #     for j in np.arange(len(data)-muestras,len(data)):
+    #         rt[i] = phase_coherence(data[j,1:])
+    #         i = i + 1
+    #     return np.mean(rt)
+
+
+    def plot_kuramoto_results(self):
+        data = np.loadtxt(self.current_islet_file[:-4] +"_kuramoto_angles.data")
+        print(np.shape(data))
+        layout = QtWidgets.QVBoxLayout()
+        self.kuramoto_results_tab = QtWidgets.QWidget()
+        self.kuramoto_results_tab.setObjectName("kuramoto_results_tab")
+        self.kuramoto_results_tab.setLayout(layout)
+
+        figure, (ax1, ax2) = plt.subplots(2)
+        #figure = plt.figure()
+        #figure.subplots_adjust(left=0.1, right=0.99, bottom=0.05, top=1.0, wspace=0.2, hspace=0.2)
+        new_canvas = FigureCanvas(figure)
+        new_canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
+        new_canvas.setFocus()
+        
+        phase_coherence_alphas = self.phase_coherence(data[:, self.ind_alfas+1].T)
+        phase_coherence_betas = self.phase_coherence(data[:, self.ind_betas+1].T)
+        phase_coherence_deltas = self.phase_coherence(data[:, self.ind_deltas+1].T)
+        phase_coherence_islet = self.phase_coherence(data[:, 1:].T)
+        
+        sum_osc_alphas = np.sum(np.sin(data[:, self.ind_alfas+1]), 1)
+        sum_osc_betas = np.sum(np.sin(data[:, self.ind_betas+1]), 1)
+        sum_osc_deltas = np.sum(np.sin(data[:,self.ind_deltas+1]), 1)
+        sum_osc_islote = np.sum(np.sin(data[:, 1:]), 1)
+
+        
+        #fig.suptitle('Vertically stacked subplots')
+        ax1.plot(sum_osc_islote, color="Black")
+        ax1.plot(sum_osc_alphas, color="Red")
+        ax1.plot(sum_osc_betas, color="Green")
+        ax1.plot(sum_osc_deltas, color="Blue")
+        ax2.plot(phase_coherence_islet, color="Black")
+        ax2.plot(phase_coherence_alphas, color="Red")
+        ax2.plot(phase_coherence_betas, color="Green")
+        ax2.plot(phase_coherence_deltas, color="Blue")
+        #ax.mouse_init()
+
+        new_toolbar = NavigationToolbar(new_canvas, self.kuramoto_results_tab)
+        unwanted_buttons = ["Subplots"]
+        for x in new_toolbar.actions():
+            if x.text() in unwanted_buttons:
+                new_toolbar.removeAction(x)
+
+        layout.addWidget(new_canvas)
+        layout.addWidget(new_toolbar)
+        #self.tabWidget_stats.addTab(new_tab, "txt")
+        self.tabWidget_Plots.addTab(self.kuramoto_results_tab, "Simulation")
+        self.toolbar_handles.append(new_toolbar)
+        self.canvases.append(new_canvas)
+        self.figure_handles.append(figure)
+        #self.tab_handles.append(self.contacts_plot_tab)    
+        self.tab_handles.append(self.kuramoto_results_tab)
 
 
 
 class Ui_OptLog_Dialog(object):
-    def setupUi(self, Dialog, fout):
+    def setupUi(self, Dialog, fout, windowtitle):
         Dialog.setObjectName("Dialog")
         Dialog.resize(650, 400)
         Dialog.setMinimumSize(QtCore.QSize(650, 400))
         Dialog.setMaximumSize(QtCore.QSize(650, 400))
+        Dialog.setWindowTitle(windowtitle)
         self.textEdit = QtWidgets.QTextEdit(Dialog)
         self.textEdit.setGeometry(QtCore.QRect(10, 10, 630, 350))
         self.textEdit.setObjectName("textEdit")
@@ -2277,7 +2359,7 @@ class Ui_OptLog_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Optimization log"))
+        #Dialog.setWindowTitle(_translate("Dialog", "Optimization log"))
         self.runopt_pushButton.setText(_translate("Dialog", "Run"))
         self.abortopt_pushbutton.setText(_translate("Dialog", "Abort"))
 

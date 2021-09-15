@@ -18,7 +18,7 @@
 
 
 // Parametros globales modelo
-#define totalCelulas 510
+#define totalCelulas 507
 #define maxVecinos 10 // maximo numero de vecinos por celula
 double *Angulos_Device;
 double *Angulos_Host;
@@ -324,7 +324,7 @@ int main(void){
     time_t begin = time(NULL);
 
     // Tiempo total de simulacion
-double Tf = 10000.0;
+double Tf = 20000.0;
     double t;
     // Paso de tiempo simulacion
 double dt = 0.1;
