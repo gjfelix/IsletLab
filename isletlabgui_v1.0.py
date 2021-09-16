@@ -21,6 +21,7 @@ from sphere import Sphere
 from sys import platform as sys_pf
 
 from matplotlib.dates import date2num
+from matplotlib.ticker import ScalarFormatter, FormatStrFormatter
 from datetime import datetime
 
 import networkx as nx
@@ -101,7 +102,7 @@ class Ui_MainWindow(object):
         self.Kdb = 1.0
         self.Kad = -1.0
         self.Kbd = -1.0
-        self.Kdd = 1.0
+        self.Kdd = 0.0
 
         # Simulation settings (CUDA settings)
         self.nblocks = 30
@@ -702,17 +703,17 @@ class Ui_MainWindow(object):
         self.verticalLayout_7.setObjectName("verticalLayout_7")
         self.initialphase_constant_radio = QtWidgets.QRadioButton(self.verticalLayoutWidget_7)
         self.initialphase_constant_radio.setObjectName("initialphase_constant_radio")
+        self.initialphase_constant_radio.setChecked(True)
         self.verticalLayout_7.addWidget(self.initialphase_constant_radio)
         self.initialphase_random_radio = QtWidgets.QRadioButton(self.verticalLayoutWidget_7)
         self.initialphase_random_radio.setObjectName("initialphase_random_radio")
-        self.initialphase_constant_radio.setChecked(True)
         self.verticalLayout_7.addWidget(self.initialphase_random_radio)
-
+        self.initialphase_random_radio.toggled.connect(lambda:self.disable_random_phase_config_button(self.initialphase_random_radio))
+        
         self.initialphase_config_button = QtWidgets.QPushButton(self.verticalLayoutWidget_7)
         self.initialphase_config_button.setObjectName("initialphase_config_button")
         self.initialphase_config_button.clicked.connect(self.selectInitialPhaseConfig)
         self.verticalLayout_7.addWidget(self.initialphase_config_button)
-
 
         #self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         #self.horizontalLayout_2.setSpacing(6)
@@ -832,6 +833,7 @@ class Ui_MainWindow(object):
         self.tabWidget_Plots = QtWidgets.QTabWidget(self.centralwidget)
         self.tabWidget_Plots.setGeometry(QtCore.QRect(342, 1, 681, 725))
         self.tabWidget_Plots.setObjectName("tabWidget_Plots")
+        self.tabWidget_Plots.setTabsClosable(False)
         self.initial_islet_plot_tab = QtWidgets.QWidget()
         self.initial_islet_plot_tab.setObjectName("initial_islet_plot_tab")
         self.tabWidget_Plots.addTab(self.initial_islet_plot_tab, "")
@@ -1074,6 +1076,14 @@ class Ui_MainWindow(object):
         self.actionSimulation.setText(_translate("MainWindow", "Simulation"))
         #self.actionGraphs.setText(_translate("MainWindow", "Graphs"))
 
+
+    def disable_random_phase_config_button(self, radio):
+        if radio.text() == "Random":
+            if radio.isChecked() == True:
+                self.initialphase_config_button.setEnabled(False)
+            else:
+                self.initialphase_config_button.setEnabled(True)
+
     def open_islet_file_button_clicked(self, s):
         #print("click", s)
         dlg = QtWidgets.QFileDialog()
@@ -1120,13 +1130,14 @@ class Ui_MainWindow(object):
         
         ax = Axes3D(figure)
         ax.view_init(elev = -80., azim = 90)
-        plt.xlabel('x')
-        plt.ylabel('y')
+        ax.set_xlabel('X ('+r'$\mu m$'+')')
+        ax.set_ylabel('Y ('+r'$\mu m$'+')')
+        ax.set_zlabel('Z ('+r'$\mu m$'+')')
+        
         #ax.set_xlim(-10, 10)
         #ax.set_ylim(-10, 10)
         #ax.set_zlim(-10, 10)
-        #ax.set_zlabel('z')
-        #ax.set_zticks([])
+
         for cell in self.exp_islet_data:
             x_coord = cell[1]
             y_coord = cell[2]
@@ -1375,8 +1386,9 @@ class Ui_MainWindow(object):
         
         ax = Axes3D(figure)
         ax.view_init(elev = -80., azim = 90)
-        plt.xlabel('x')
-        plt.ylabel('y')
+        ax.set_xlabel('X ('+r'$\mu m$'+')')
+        ax.set_ylabel('Y ('+r'$\mu m$'+')')
+        ax.set_zlabel('Z ('+r'$\mu m$'+')')
         #ax.set_xlim(-10, 10)
         #ax.set_ylim(-10, 10)
         #ax.set_zlim(-10, 10)
@@ -1755,8 +1767,9 @@ class Ui_MainWindow(object):
         new_canvas.setFocus()
         
         ax = Axes3D(figure)
-        plt.xlabel('x')
-        plt.ylabel('y')
+        ax.set_xlabel('X (' + r'$\mu$ m'+')')
+        ax.set_ylabel('Y (' + r'$\mu$ m'+')')
+        ax.set_zlabel('Z (' + r'$\mu$ m'+')')
         ax.view_init(elev = -80., azim = 90)
         # grafico los puntos (celulas)
         scattercolors = self.pointcolors(isletdata[:,2])
@@ -1911,6 +1924,8 @@ class Ui_MainWindow(object):
         
         
         plt.plot(np.arange(len(optdata[:,2])), optdata[:,2])
+        plt.xlabel("Temperature iteration")
+        plt.ylabel("Number of overlapped cells")
         #plt.show()
 
         #ax.mouse_init()
@@ -2026,8 +2041,9 @@ class Ui_MainWindow(object):
             #print(self.initialphase_type)
         if self.initialphase_random_radio.isChecked():
             self.initialphase_type = "Random"
-            self.open_rand_phase_settings()
+            #self.open_rand_phase_settings()
             #print(self.initialphase_type)
+
 
     def selectIntrinsicFreqConfig(self):
         if self.intrinsicfreq_constant_radio.isChecked():
@@ -2166,6 +2182,11 @@ class Ui_MainWindow(object):
             self.timestep_lineedit.setText(str(self.dtsim))
         else:
             self.dtsim = float(self.timestep_lineedit.text())
+
+        if self.save_mult_lineedit.text()=="":
+            self.save_mult_lineedit.setText(str(self.saveMultiple))
+        else:
+            self.saveMultiple = int(self.save_mult_lineedit.text())
         try:
             # base cuda code
             fsource = open('kuramoto_islets.cu')
@@ -2176,7 +2197,7 @@ class Ui_MainWindow(object):
             # read source cuda file
             lines = fsource.readlines()
             lines[20] = "#define totalCelulas " + str(ncells) +"\n"
-            lines[25] = "#define saveMultiple " + str(self.saveMultiple) +"\n"
+            #lines[25] = "#define saveMultiple " + str(self.saveMultiple) +"\n"
             lines[29] = "const int numBlocks = " + str(self.nblocks) + ";\n"
             lines[30] = "const int threadsPerBlock = " + str(self.ncudathreads) + ";\n"
             lines[139] = 'fp = fopen("' + self.current_islet_file[:-4] + '_all_contacts.txt" ,"r");\n' 
@@ -2287,11 +2308,21 @@ class Ui_MainWindow(object):
         new_canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
         new_canvas.setFocus()
         
-        phase_coherence_alphas = self.phase_coherence(data[:, self.ind_alfas+1].T)
-        phase_coherence_betas = self.phase_coherence(data[:, self.ind_betas+1].T)
-        phase_coherence_deltas = self.phase_coherence(data[:, self.ind_deltas+1].T)
-        phase_coherence_islet = self.phase_coherence(data[:, 1:].T)
-        
+        #np.linspace(0, model.T, int(model.T/model.dt)),
+        ax2.plot(data[:,0],[self.phase_coherence(vec)
+            for vec in data[:,self.ind_alfas]], 'o')
+        ax2.get_yaxis().get_major_formatter().set_useOffset(False)
+        ax2.get_yaxis().set_major_formatter(FormatStrFormatter('%.2f'))
+        ax2.set_xlabel("Time (s)")
+        ax2.set_ylabel("Sync index")
+
+        #phase_coherence_alphas = self.phase_coherence(data[:, self.ind_alfas+1].T)
+        #phase_coherence_betas = self.phase_coherence(data[:, self.ind_betas+1].T)
+        #phase_coherence_deltas = self.phase_coherence(data[:, self.ind_deltas+1].T)
+        #phase_coherence_islet = self.phase_coherence(data[:, 1:].T)
+        #plt.plot(theta_data[:,0],[phase_coherence(vec) for vec in theta_data[:,1:]],'o')
+
+
         sum_osc_alphas = np.sum(np.sin(data[:, self.ind_alfas+1]), 1)
         sum_osc_betas = np.sum(np.sin(data[:, self.ind_betas+1]), 1)
         sum_osc_deltas = np.sum(np.sin(data[:,self.ind_deltas+1]), 1)
@@ -2299,14 +2330,17 @@ class Ui_MainWindow(object):
 
         
         #fig.suptitle('Vertically stacked subplots')
-        ax1.plot(sum_osc_islote, color="Black")
-        ax1.plot(sum_osc_alphas, color="Red")
-        ax1.plot(sum_osc_betas, color="Green")
-        ax1.plot(sum_osc_deltas, color="Blue")
-        ax2.plot(phase_coherence_islet, color="Black")
-        ax2.plot(phase_coherence_alphas, color="Red")
-        ax2.plot(phase_coherence_betas, color="Green")
-        ax2.plot(phase_coherence_deltas, color="Blue")
+        ax1.plot(data[:,0],sum_osc_islote, color="Black", label = "Islet")
+        ax1.plot(data[:,0],sum_osc_alphas, color="Red", label = r'$\alpha$'+'-cells')
+        ax1.plot(data[:,0],sum_osc_betas, color="Green", label = r'$\beta$'+'-cells')
+        ax1.plot(data[:,0],sum_osc_deltas, color="Blue", label = r'$\delta$'+'-cells')
+        ax1.set_xlabel("Time (s)")
+        ax1.set_ylabel("Sin("+r'$\theta$'+")")
+        ax1.legend(frameon=False, loc='lower center', ncol=4, bbox_to_anchor=(0.5, 1.01))
+        #ax2.plot(phase_coherence_islet, color="Black")
+        #ax2.plot(phase_coherence_alphas, color="Red")
+        #ax2.plot(phase_coherence_betas, color="Green")
+        #ax2.plot(phase_coherence_deltas, color="Blue")
         #ax.mouse_init()
 
         new_toolbar = NavigationToolbar(new_canvas, self.kuramoto_results_tab)
@@ -2324,6 +2358,7 @@ class Ui_MainWindow(object):
         self.figure_handles.append(figure)
         #self.tab_handles.append(self.contacts_plot_tab)    
         self.tab_handles.append(self.kuramoto_results_tab)
+        self.tabWidget_Plots.setCurrentIndex(5)
 
 
 

@@ -18,12 +18,12 @@
 
 
 // Parametros globales modelo
-#define totalCelulas 507
+#define totalCelulas 496
 #define maxVecinos 10 // maximo numero de vecinos por celula
 double *Angulos_Device;
 double *Angulos_Host;
 #define PI 3.14159265358979323846
-#define saveMultiple 5000
+//#define beta 0.23
 
 
 // Parametros CUDA
@@ -229,7 +229,7 @@ void init_theta(){
 
 
     for (int i=0; i<totalCelulas; i++){
-theta =0.0;
+theta = 2 * PI * get_random();
         //theta = (2*(double)i*PI)/(double)totalCelulas;
         asignar_theta<<<1,1>>>(i, theta);
         cudaDeviceSynchronize();
@@ -360,7 +360,7 @@ FILE *salidaAngulosIslote = fopen("/home/gerardo/Documents/IsletLab/H51_kuramoto
     init_theta();
 
     for (t = 0; t < Tf;) {
-if (indice % 5000 == 0){
+if (indice % 500 == 0){
             getAngulos<<<1,1>>>(Angulos_Device);
             cudaDeviceSynchronize();
 
