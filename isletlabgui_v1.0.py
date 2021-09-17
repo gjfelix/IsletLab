@@ -25,6 +25,8 @@ from matplotlib.ticker import ScalarFormatter, FormatStrFormatter
 from datetime import datetime
 
 import networkx as nx
+import glob
+from zipfile import ZipFile
 
 if sys_pf == 'darwin':
     import matplotlib
@@ -863,6 +865,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
         self.actionExport_data = QtWidgets.QAction(MainWindow)
         self.actionExport_data.setObjectName("actionExport_data")
+        self.actionExport_data.triggered.connect(self.save_project)
         self.actionAbout = QtWidgets.QAction(MainWindow)
         self.actionAbout.setObjectName("actionAbout")
         self.actionDocumentation = QtWidgets.QAction(MainWindow)
@@ -1067,15 +1070,41 @@ class Ui_MainWindow(object):
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.menuSettings.setTitle(_translate("MainWindow", "Settings"))
         self.menuHelp.setTitle(_translate("MainWindow", "Help"))
-        self.actionExport_data.setText(_translate("MainWindow", "Export data"))
+        self.actionExport_data.setText(_translate("MainWindow", "Export Project"))
         self.actionAbout.setText(_translate("MainWindow", "About"))
         self.actionDocumentation.setText(_translate("MainWindow", "Documentation"))
         self.actionReconstruction.setText(_translate("MainWindow", "Reconstruction"))
         self.actionContacts.setText(_translate("MainWindow", "Contacts"))
-        self.actionLoad_data.setText(_translate("MainWindow", "Load data"))
+        self.actionLoad_data.setText(_translate("MainWindow", "Load Project"))
         self.actionRestart.setText(_translate("MainWindow", "Restart"))
         self.actionSimulation.setText(_translate("MainWindow", "Simulation"))
         #self.actionGraphs.setText(_translate("MainWindow", "Graphs"))
+
+
+    def save_project(self):
+
+        self.filespath = re.search(".+/", self.current_islet_file)[0]
+        self.filemainname = re.search("(.+)\.(.+)",self.abbv_filename)[1]
+        
+        #print(self.filemainname)
+        #filestosave =glob.glob(self.filespath+self.filemainname+'*.txt') + glob.glob(self.filespath+self.filemainname+'*.data')
+        filestosave =glob.glob(self.filespath+self.filemainname+'*.txt') + glob.glob(self.filespath+self.filemainname+'*.data')
+        #print(self.filespath)
+        #print(filestosave)
+        
+        dlg = QtWidgets.QFileDialog()
+        save_directory = dlg.getExistingDirectory(None, "Select Directory")
+        projectfilename = save_directory + '/'+self.filemainname + "_IsletLab_Project.zip"
+        #print(projectfilename)
+        
+        try:
+            zipProject = ZipFile(projectfilename, 'w')
+            for file in filestosave:
+                zipProject.write(file)
+            successSave = QtWidgets.QMessageBox.information(None, "Project saved", "Your project has been saved succesfully")
+        except:
+            print("Error haciendo zipfile")
+        
 
 
     def disable_random_phase_config_button(self, radio):
@@ -2353,7 +2382,7 @@ class Ui_MainWindow(object):
         
         #np.linspace(0, model.T, int(model.T/model.dt)),
         ax2.plot(data[:,0],[self.phase_coherence(vec)
-            for vec in data[:,self.ind_alfas]], 'o', color="k")
+            for vec in data[:,self.ind_alfas]], 'o')
         ax2.get_yaxis().get_major_formatter().set_useOffset(False)
         ax2.get_yaxis().set_major_formatter(FormatStrFormatter('%.2f'))
         ax2.set_xlabel("Time (s)")
