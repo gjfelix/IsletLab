@@ -18,7 +18,7 @@
 
 
 // Parametros globales modelo
-#define totalCelulas 496
+#define totalCelulas 514
 #define maxVecinos 10 // maximo numero de vecinos por celula
 double *Angulos_Device;
 double *Angulos_Host;

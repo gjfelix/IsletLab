@@ -89,9 +89,9 @@ class Ui_MainWindow(object):
         self.sdfreq = self.meanfreq/10.
         self.meanphase = 0.
         self.sdphase = self.meanphase/10.
-        self.totaltimesim = 1000.0
+        self.totaltimesim = 20000.0
         self.dtsim = 0.1
-        self.saveMultiple = 5000
+        self.saveMultiple = 500
 
         # interaction strength parameters (kuramoto oscilators)
         self.Kaa = 1.0
@@ -703,10 +703,11 @@ class Ui_MainWindow(object):
         self.verticalLayout_7.setObjectName("verticalLayout_7")
         self.initialphase_constant_radio = QtWidgets.QRadioButton(self.verticalLayoutWidget_7)
         self.initialphase_constant_radio.setObjectName("initialphase_constant_radio")
-        self.initialphase_constant_radio.setChecked(True)
+        
         self.verticalLayout_7.addWidget(self.initialphase_constant_radio)
         self.initialphase_random_radio = QtWidgets.QRadioButton(self.verticalLayoutWidget_7)
         self.initialphase_random_radio.setObjectName("initialphase_random_radio")
+        self.initialphase_random_radio.setChecked(True)
         self.verticalLayout_7.addWidget(self.initialphase_random_radio)
         self.initialphase_random_radio.toggled.connect(lambda:self.disable_random_phase_config_button(self.initialphase_random_radio))
         
@@ -1116,6 +1117,12 @@ class Ui_MainWindow(object):
                 self.load_islet_status_label.setStyleSheet("color: Red")
                 
 
+    def islet_center(self, coords_matrix):
+        center_x = np.mean(coords_matrix[:,0])
+        center_y = np.mean(coords_matrix[:,1])
+        center_z = np.mean(coords_matrix[:,2])
+        return [center_x, center_y, center_z]
+
     ## funcion que grafica islote inicial
     def plot_initial_islet(self):
         #new_tab = QWidget()
@@ -1156,6 +1163,15 @@ class Ui_MainWindow(object):
                 cell_color = "k"
             s = Sphere(ax, x = x_coord, y = y_coord, z = z_coord, radius = r_cell, detail_level = 10, rstride = 2, cstride = 2, color = cell_color)
             #s.modify_x(2)
+
+        center_coords = self.islet_center(self.exp_islet_data[:,1:])
+        ax.scatter(center_coords[0], center_coords[1], center_coords[2], color="Red", label=r'$\alpha$'+"-cells")
+        ax.scatter(center_coords[0], center_coords[1], center_coords[2], color="Green", label=r'$\beta$'+"-cells")
+        ax.scatter(center_coords[0], center_coords[1], center_coords[2], color="Blue", label=r'$\delta$'+"-cells")
+        ax.legend(frameon=False, loc='lower center', ncol=3)
+        #ax.scatter(self.exp_islet_data[:,1], self.exp_islet_data[:,2], self.exp_islet_data[:,3],c=self.pointcolors(self.exp_islet_data[:,0]))
+        #c=self.pointcolors(self.exp_islet_data[:,0]), label=self.cell_labels(self.exp_islet_data[:,0])
+        
         ax.mouse_init()
 
 
@@ -1172,6 +1188,18 @@ class Ui_MainWindow(object):
         self.canvases.append(new_canvas)
         self.figure_handles.append(figure)
         self.tab_handles.append(self.initial_islet_plot_tab)
+
+    def cell_labels(self, celltypes):
+        label=[]
+        for l in celltypes:
+            if l==11.:
+                label.append(r'$\alpha-cells$')
+            elif l==12.:
+                cols.append(r'$\beta-cells$')
+            else:
+                cols.append(r'$\delta-cells$')
+        return cols
+
 
     # funcion que saca estadística de islote inicial
     def initial_islet_stats(self):
@@ -1414,6 +1442,11 @@ class Ui_MainWindow(object):
             #s.modify_x(2)
         ax.mouse_init()
 
+        center_coords = self.islet_center(self.post_processed_data[:,3:])
+        ax.scatter(center_coords[0], center_coords[1], center_coords[2], color="Red", label=r'$\alpha$'+"-cells")
+        ax.scatter(center_coords[0], center_coords[1], center_coords[2], color="Green", label=r'$\beta$'+"-cells")
+        ax.scatter(center_coords[0], center_coords[1], center_coords[2], color="Blue", label=r'$\delta$'+"-cells")
+        ax.legend(frameon=False, loc='lower center', ncol=3)
 
         new_toolbar = NavigationToolbar(new_canvas, self.initial_islet_plot_tab)
         unwanted_buttons = ["Subplots", "Zoom"]
@@ -1774,6 +1807,7 @@ class Ui_MainWindow(object):
         # grafico los puntos (celulas)
         scattercolors = self.pointcolors(isletdata[:,2])
         ax.scatter(isletdata[:,3], isletdata[:,4],isletdata[:,5], c=scattercolors, s=3)
+        ax.legend()
 
         #self.contacts_islet['bbbd'] = np.stack(np.array(contact_matrix_bb_bd), axis=0)
         #self.contacts_islet['aa'] = np.stack(np.array(contact_matrix_aa), axis=0)
@@ -1801,6 +1835,13 @@ class Ui_MainWindow(object):
                 for c2 in np.arange(c1 + 1, len(value)):
                     if value[c1,c2] == 1:
                         ax.plot([isletdata[c1,3], isletdata[c2,3]], [isletdata[c1,4], isletdata[c2,4]], [isletdata[c1,5], isletdata[c2,5]], c='black')
+
+       
+        center_coords = self.islet_center(isletdata[:,3:])
+        ax.scatter(center_coords[0], center_coords[1], center_coords[2], alpha=1, s=0.1, color="Red", label=r'$\alpha$'+"-cells")
+        ax.scatter(center_coords[0], center_coords[1], center_coords[2], alpha=1, s=0.1, color="Green", label=r'$\beta$'+"-cells")
+        ax.scatter(center_coords[0], center_coords[1], center_coords[2], alpha=1, s=0.1, color="Blue", label=r'$\delta$'+"-cells")
+        ax.legend(frameon=False, loc='lower center', ncol=3, markerscale=20)
 
         ax.mouse_init()
 
@@ -1873,8 +1914,10 @@ class Ui_MainWindow(object):
         
         
         nx.draw(grafo, node_size=3,with_labels=False, node_color=self.node_colors(tipo_global),ax=figure.add_subplot(111))
-
-
+        plt.scatter([],[], c="Red", label=r'$\alpha$-cells')
+        plt.scatter([],[], c="Green", label=r'$\beta$-cells')
+        plt.scatter([],[], c="Blue", label=r'$\delta$-cells')
+        plt.legend(frameon=False, loc='lower center', ncol=3, markerscale=1, bbox_to_anchor=(0.5, -0.1))
         #ax.mouse_init()
 
         new_toolbar = NavigationToolbar(new_canvas, self.contacts_plot_tab)
@@ -2310,7 +2353,7 @@ class Ui_MainWindow(object):
         
         #np.linspace(0, model.T, int(model.T/model.dt)),
         ax2.plot(data[:,0],[self.phase_coherence(vec)
-            for vec in data[:,self.ind_alfas]], 'o')
+            for vec in data[:,self.ind_alfas]], 'o', color="k")
         ax2.get_yaxis().get_major_formatter().set_useOffset(False)
         ax2.get_yaxis().set_major_formatter(FormatStrFormatter('%.2f'))
         ax2.set_xlabel("Time (s)")
