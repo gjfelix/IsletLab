@@ -462,14 +462,15 @@ int main(void) {
 //		for (j = 0; j < numCells; j++) {
 //			printf("%f\t", sumaRadiosMatriz[i][j]);
 //		}
-//		printf("\n");
-//	}
 
+	printf("\nIsletLab v.1.0\n\n");
+	printf("Pancreatic islet reconstruction based on the algorithm by \n");
+	printf("Felix-Martinez et al. DOI: 10.1080/19382014.2020.1823178\n\n");
 	// Pruebo funcion para calcular energia
 
 	// Calculo energia inicial
 	E = energia(sumaRadiosMatriz, distNucMatriz);
-	printf("\nEnergia calculada: %f\n", E);
+	printf("\nOverlapped cells in initial islet: %f\n\n", E);
 	fflush(stdout);
 //	for (i = 0; i < numCells; i++) {
 //		for (j = 0; j < numCells; j++) {
@@ -514,7 +515,7 @@ int main(void) {
 
 		id = omp_get_thread_num();
 
-		fprintf(stdout, "Hola soy %d\n",id);
+		fprintf(stdout, "\nInitializing thread: %d\n",id);
 		if (id == 0) {
 			if ((maxE - minE) / maxE > StopTolerance) {
 				condicion1 = 1;
@@ -661,11 +662,11 @@ int main(void) {
 				fprintf(archivoLog, "%lf\t%lf\t%lf\t%lf\t%d\t%d\t%s", temp, E,
 						minE, maxE, AcceptN, TrialN, asctime(timeinfo));
 				fflush(archivoLog);
-				printf("temp = %.*f\n", 10, temp);
+				printf("\nT = %.*f\n", 10, temp);
 				fflush(stdout);
-				printf("energy = %*f\n", 1, E);
-				printf("[minE maxE] = [%f %f]\n", minE, maxE);
-				printf("[AcceptN TrialN] = [%d %d]\n\n", AcceptN, TrialN);
+				printf("Overlapped cells (OC) = %*f\n", 1, E);
+				printf("[min(OC) max(OC)] = [%f %f]\n", minE, maxE);
+				printf("[Accepted Total] = [%d %d]\n\n", AcceptN, TrialN);
 				//printf("Tiempo de iteracion: %f \n\n", cpu_time_used);
 				temp = temp * TempRatio;
 
@@ -683,7 +684,8 @@ int main(void) {
 	//guardarArchivoFinal(radiosCelulas, colorcells);
 
 	time_t end = time(NULL);
-	printf("Tiempo de ejecucion: %ld segundos\n", (end - begin));
+	printf("Computing time: %ld seconds\n", (end - begin));
+	printf("\nPlease close this window to continue.");
 	return 0;
 }
 

@@ -179,16 +179,17 @@ void cargarArchivo() {
     }
 }
 
-
 __global__ void imprimeredcelula() {
     int j, i;
+    printf("\nIsletLab v1.0\n\n");
+    printf("\nInitializing islet connectivity: \n\n");
     for (i = 0; i < totalCelulas; i++) {
-        printf("Soy %d, con %d vecinos \t", i, islote[i].n_vecinos);
-        for (j = 0; j < maxVecinos; j++) {
+        printf("Cell ID: %d\t  Neighbors: %d\t Neighbors ID: ", i, islote[i].n_vecinos);
+        
+        for (j = 0; j < islote[i].n_vecinos; j++) {
             printf("%d ", islote[i].id_vecinos[j]);
         }
-        printf("\n");
-        //fflush(stdout);
+        printf("\n\n");
     }
 }
 
@@ -208,14 +209,14 @@ __global__ void set_gacople(int i, double gacople, int numvecinos) {
     // guarda parametro de acople entre celula i y sus vecinos
     islote[i].vecinos[numvecinos].gacople = gacople;
     //printf("Soy %i con gacople = %f\n", i, islote[i].vecinos[numvecinos].gacople);
-    printf("%i,%i,%f\n", i, islote[i].id_vecinos[numvecinos],islote[i].vecinos[numvecinos].gacople);
+    //printf("\nCell: %i, Cell: %i,%f\n", i, islote[i].id_vecinos[numvecinos],islote[i].vecinos[numvecinos].gacople);
 }
 
 
 __global__ void asignar_theta(int i, double theta){
     // para pasar angulos generados en host a GPU
     islote[i].theta = theta;
-    printf("Soy %i con angulo %f\n", i, islote[i].theta);
+    //printf("Soy %i con angulo %f\n", i, islote[i].theta);
 }
 
 __global__ void asignar_frec(int i, double frec){
@@ -226,7 +227,6 @@ void init_theta(){
     // Inicializa angulos para cada celula en host
     double theta;
     double frec;
-
 
     for (int i=0; i<totalCelulas; i++){
         theta = 2 * PI * get_random();
@@ -358,7 +358,7 @@ int main(void){
 
     // Inicializa angulos (theta)
     init_theta();
-
+    printf("\n\nSimulating:\n\n");
     for (t = 0; t < Tf;) {
         if (indice % 5000 == 0){
             getAngulos<<<1,1>>>(Angulos_Device);
@@ -366,7 +366,7 @@ int main(void){
 
             cudaMemcpy(Angulos_Host, Angulos_Device, totalCelulas * sizeof(double), cudaMemcpyDeviceToHost);
             cudaDeviceSynchronize();
-            printf("%lf\n",t); fflush(stdout);
+            printf("t = %lf\n",t); fflush(stdout);
             fprintf(salidaAngulosIslote, "%lf\t", t);
             for (int i = 0; i < totalCelulas; ++i) {
                 if (i == totalCelulas - 1) {
@@ -389,7 +389,8 @@ int main(void){
 
     }
     time_t end = time(NULL);
-    printf("Tiempo de ejecucion: %ld segundos\n", (end - begin));
+    printf("\n\nComputing time: %ld seconds\n", (end - begin));
+    printf("\nPlease close this window to continue.");
     fflush(stdout);
 
     return EXIT_SUCCESS;

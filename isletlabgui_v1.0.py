@@ -9,7 +9,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
 import re
-from ProgressBar import ProgressBar
 import sys, time
 import subprocess
 #import _thread
@@ -27,6 +26,7 @@ from datetime import datetime
 import networkx as nx
 import glob
 from zipfile import ZipFile
+import os
 
 if sys_pf == 'darwin':
     import matplotlib
@@ -42,13 +42,10 @@ else:
     from mpl_toolkits.mplot3d import Axes3D
 
 
-# Para progress bar
-class Message(QtCore.QObject):
-    finished = QtCore.pyqtSignal()
 
 
 class Ui_MainWindow(object):
-
+    
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1024, 769)
@@ -60,10 +57,13 @@ class Ui_MainWindow(object):
         MainWindow.setMinimumSize(QtCore.QSize(1024, 769))
         MainWindow.setMaximumSize(QtCore.QSize(1024, 769))
         MainWindow.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
+        #MainWindow.show()
         
         reg_ex_numeros = QtCore.QRegExp("[+]?[0-9]*\.?[0-9]+")
 
         
+        app.aboutToQuit.connect(self.closeEvent)
+
         # Para agregar figuras en pestañas
         self.canvases = []
         self.figure_handles = []
@@ -78,6 +78,7 @@ class Ui_MainWindow(object):
         self.maxacc = 1
         self.threads = 6
         self.contacttol = 1.0
+        self.optstatus = 0
 
         # diccionario de contactos
         self.contacts_islet = {}
@@ -869,6 +870,7 @@ class Ui_MainWindow(object):
         self.actionExport_data.setEnabled(False)
         self.actionAbout = QtWidgets.QAction(MainWindow)
         self.actionAbout.setObjectName("actionAbout")
+        self.actionAbout.triggered.connect(self.about_isletlab)
         self.actionDocumentation = QtWidgets.QAction(MainWindow)
         self.actionDocumentation.setObjectName("actionDocumentation")
         
@@ -940,9 +942,9 @@ class Ui_MainWindow(object):
         self.network_button.setText(_translate("MainWindow", "Build Network"))
         self.network_status_button.setText(_translate("MainWindow", "Network not generated"))
         self.ini_ncells_label.setText(_translate("MainWindow", "Number of cells"))
-        self.ini_alpha_cells_label.setText(_translate("MainWindow", "Number of alpha cells"))
-        self.ini_beta_cells_label.setText(_translate("MainWindow", "Number of beta cells"))
-        self.ini_delta_cells_label.setText(_translate("MainWindow", "Number of delta cells"))
+        self.ini_alpha_cells_label.setText(_translate("MainWindow", "Number of \u03b1-cells"))
+        self.ini_beta_cells_label.setText(_translate("MainWindow", "Number of \u03b2-cells"))
+        self.ini_delta_cells_label.setText(_translate("MainWindow", "Number of \u03b4-cells"))
         self.ini_ncells_value.setText(_translate("MainWindow", "0"))
         self.ini_alphacells_value.setText(_translate("MainWindow", "0"))
         self.ini_betacells_value.setText(_translate("MainWindow", "0"))
@@ -957,11 +959,11 @@ class Ui_MainWindow(object):
         self.fin_alphacells_perc.setText(_translate("MainWindow", "0"))
         self.fin_betacells_value.setText(_translate("MainWindow", "0"))
         self.fin_betacells_perc.setText(_translate("MainWindow", "0"))
-        self.fin_delta_cells_label.setText(_translate("MainWindow", "Number of delta cells"))
+        self.fin_delta_cells_label.setText(_translate("MainWindow", "Number of \u03b4-cells"))
         self.fin_ncells_perc.setText(_translate("MainWindow", "0"))
-        self.fin_beta_cells_label.setText(_translate("MainWindow", "Number of beta cells"))
+        self.fin_beta_cells_label.setText(_translate("MainWindow", "Number of \u03b2-cells"))
         self.fin_ncells_label.setText(_translate("MainWindow", "Number of cells"))
-        self.fin_alpha_cells_label.setText(_translate("MainWindow", "Number of alpha cells"))
+        self.fin_alpha_cells_label.setText(_translate("MainWindow", "Number of \u03b1-cells"))
         self.fin_alphacells_value.setText(_translate("MainWindow", "0"))
         self.fin_deltacells_perc.setText(_translate("MainWindow", "0"))
         self.opt_stats_groupbox.setTitle(_translate("MainWindow", "Optimization "))
@@ -978,11 +980,11 @@ class Ui_MainWindow(object):
         self.fin_total_vol_label.setText(_translate("MainWindow", "Total cell volume"))
         self.fin_total_vol_value.setText(_translate("MainWindow", "0"))
         self.fin_total_vol_perc.setText(_translate("MainWindow", "0"))
-        self.fin_alpha_vol_label.setText(_translate("MainWindow", "Alpha cell volume"))
+        self.fin_alpha_vol_label.setText(_translate("MainWindow", "\u03b1-cell volume"))
         self.fin_alpha_vol_value.setText(_translate("MainWindow", "0"))
         self.fin_alpha_vol_perc.setText(_translate("MainWindow", "0"))
-        self.fin_beta_vol_label.setText(_translate("MainWindow", "Beta cell volume"))
-        self.fin_delta_vol_label.setText(_translate("MainWindow", "Delta cell volume"))
+        self.fin_beta_vol_label.setText(_translate("MainWindow", "\u03b2-cell volume"))
+        self.fin_delta_vol_label.setText(_translate("MainWindow", "\u03b4-cell volume"))
         self.fin_beta_vol_value.setText(_translate("MainWindow", "0"))
         self.fin_delta_vol_value.setText(_translate("MainWindow", "0"))
         self.fin_beta_vol_perc.setText(_translate("MainWindow", "0"))
@@ -997,22 +999,22 @@ class Ui_MainWindow(object):
         self.heterotypic_contacts_label.setText(_translate("MainWindow", "Heterotypic"))
         self.heterotypic_contacts_value.setText(_translate("MainWindow", "0"))
         self.heterotypic_contacts_perc.setText(_translate("MainWindow", "0"))
-        self.alphaalpha_contacts_label.setText(_translate("MainWindow", "alpha - alpha"))
+        self.alphaalpha_contacts_label.setText(_translate("MainWindow", "\u03b1 - \u03b1"))
         self.alphaalpha_contacts_value.setText(_translate("MainWindow", "0"))
         self.alphaalpha_contacts_perc.setText(_translate("MainWindow", "0"))
-        self.betabeta_contacts_label.setText(_translate("MainWindow", "beta - beta"))
+        self.betabeta_contacts_label.setText(_translate("MainWindow", "\u03b2 - \u03b2"))
         self.betabeta_contacts_value.setText(_translate("MainWindow", "0"))
         self.betabeta_contacts_perc.setText(_translate("MainWindow", "0"))
-        self.deltadelta_contacts_label.setText(_translate("MainWindow", "delta - delta"))
+        self.deltadelta_contacts_label.setText(_translate("MainWindow", "\u03b4 - \u03b4"))
         self.deltadelta_contacts_value.setText(_translate("MainWindow", "0"))
         self.deltadelta_contacts_perc.setText(_translate("MainWindow", "0"))
-        self.alphabeta_contacts_label.setText(_translate("MainWindow", "alpha - beta"))
+        self.alphabeta_contacts_label.setText(_translate("MainWindow", "\u03b1 - \u03b2"))
         self.alphabeta_contacts_value.setText(_translate("MainWindow", "0"))
         self.alphabeta_contacts_perc.setText(_translate("MainWindow", "0"))
-        self.alphadelta_contacts_label.setText(_translate("MainWindow", "alpha - delta"))
+        self.alphadelta_contacts_label.setText(_translate("MainWindow", "\u03b1 - \u03b4"))
         self.alphadelta_contacts_value.setText(_translate("MainWindow", "0"))
         self.alphadelta_contacts_perc.setText(_translate("MainWindow", "0"))
-        self.betadelta_contacts_label.setText(_translate("MainWindow", "beta - delta"))
+        self.betadelta_contacts_label.setText(_translate("MainWindow", "\u03b2 - \u03b4"))
         self.betadelta_contacts_value.setText(_translate("MainWindow", "0"))
         self.betadelta_contacts_perc.setText(_translate("MainWindow", "0"))
         self.tabWidget_islet_stats.setTabText(self.tabWidget_islet_stats.indexOf(self.tab_contacts_stats), _translate("MainWindow", "Contacts"))
@@ -1062,7 +1064,7 @@ class Ui_MainWindow(object):
         self.sim_settings_groupbox.setTitle(_translate("MainWindow", "Simulation settings"))
         self.sim_total_time_label.setText(_translate("MainWindow", "Total time"))
         self.sim_timestep_label.setText(_translate("MainWindow", "Time step"))
-        self.save_mult_label.setText(_translate("MainWindow", "Save mult"))
+        self.save_mult_label.setText(_translate("MainWindow", "Save step"))
         self.run_simulation_button.setText(_translate("MainWindow", "Run Simulation"))
         self.tabWidget_settings.setTabText(self.tabWidget_settings.indexOf(self.simulation_tab), _translate("MainWindow", "Simulation"))
         self.tabWidget_Plots.setTabText(self.tabWidget_Plots.indexOf(self.initial_islet_plot_tab), _translate("MainWindow", "Initial Islet"))
@@ -1082,6 +1084,34 @@ class Ui_MainWindow(object):
         #self.actionSimulation.setText(_translate("MainWindow", "Simulation"))
         #self.actionGraphs.setText(_translate("MainWindow", "Graphs"))
 
+
+    def closeEvent(self):
+        if self.optstatus == 2:
+            self.filespath = re.search(".+/", self.current_islet_file)[0]
+            self.filemainname = re.search("(.+)\.(.+)",self.abbv_filename)[1]
+            txtfiles =glob.glob(self.filespath+self.filemainname+'_*.txt') 
+            datafiles = glob.glob(self.filespath+self.filemainname+'*.data')
+            cudafiles = glob.glob(self.filespath+self.filemainname+'*.cu')
+            cudaexecfiles = []
+            if len(cudafiles) != 0:
+                for file in cudafiles:
+                    cudaexecfiles.append(file[:-3])
+            cfiles = glob.glob(self.filespath+self.filemainname+'*.c')
+            cexecfiles = []
+            if len(cfiles) != 0:
+                for file in cfiles:
+                    cexecfiles.append(file[:-2])
+            filestoclean = txtfiles + datafiles + cudafiles + cudaexecfiles + cfiles + cexecfiles
+            #print(filestoclean)
+            #print(len(filestoclean))
+            for file in filestoclean:
+                os.remove(file)
+        else:
+            pass
+            
+
+    def about_isletlab(self):
+        QtWidgets.QMessageBox.about(None, "About IsletLab", "Version: 1.0 \nDeveloped by Gerardo J. Félix-Martínez \nContact: gjfelix2005@gmail.com")
 
     def save_project(self):
 
@@ -1271,7 +1301,7 @@ class Ui_MainWindow(object):
 
     def plot_kuramoto_results_load(self):
         data = self.sim_results_load
-        print(np.shape(data))
+        #print(np.shape(data))
         layout = QtWidgets.QVBoxLayout()
         self.kuramoto_results_tab = QtWidgets.QWidget()
         self.kuramoto_results_tab.setObjectName("kuramoto_results_tab")
@@ -1837,16 +1867,16 @@ class Ui_MainWindow(object):
             #    break
             self.reconstruction_status_label.setText("Optimization in progress")
             self.reconstruction_status_label.setStyleSheet("color: Green")
-            optstatus, computing_time = self.launch_opt_window(fout)
-            print("Checo estatus: " + str(optstatus))
+            self.optstatus, computing_time = self.launch_opt_window(fout)
+            #print("Checo estatus: " + str(optstatus))
             #t = threading.Thread(target=self.run_code, args=(fout,))
             #t.start()
             #while t.is_alive():
             #    pass
-            if optstatus == 0:
+            if self.optstatus == 0:
                 self.reconstruction_status_label.setText("Reconstruction aborted")
                 self.reconstruction_status_label.setStyleSheet("color: Red")
-            elif optstatus == 2:
+            elif self.optstatus == 2:
                 self.comp_time_value.setText(str(computing_time[0])+" h "+str(computing_time[1]) + " m " + str(computing_time[2]) + " s")
                 self.reconstruction_status_label.setText("Optimization completed")
                 self.reconstruction_status_label.setStyleSheet("color: Green")
@@ -1883,7 +1913,9 @@ class Ui_MainWindow(object):
     def launch_opt_window(self, fout):
         Dialog = QtWidgets.QDialog()
         ui = Ui_OptLog_Dialog()
-        ui.setupUi(Dialog, fout, "Optimization Log")
+        ui.setupUi(Dialog, fout, "Reconstruction Log")
+        #isletlab_banner = pyfiglet.figlet_format("IsletLab", font="big")
+        #ui.textEdit.setText()
         Dialog.exec_()
         Dialog.reject()
         return ui.optstatus, ui.computing_time_processed
@@ -2944,10 +2976,10 @@ class Ui_OptLog_Dialog(object):
 
     def callProcess(self, fout):
         self.opt_start_time = datetime.now()
-        print(self.opt_start_time)
+        #print(self.opt_start_time)
         self.runopt_pushButton.setEnabled(False)
         self.process.start(fout[:-2])
-        print("Proceso iniciado")
+        #print("Proceso iniciado")
         self.optstatus = 1
         self.abortopt_pushbutton.setEnabled(True)
         self.process.finished.connect(self.process_finished)
@@ -2966,7 +2998,7 @@ class Ui_OptLog_Dialog(object):
             self.computing_time_processed = [self.hours, self.minutes, self.seconds]
             #self.comp_time_value.setText(str(hours)+" h "+str(minutes)+" min "+str(seconds)+ " s")
             self.optstatus = 2
-            print("Proceso terminado")
+            #print("Proceso terminado")
             self.abortopt_pushbutton.setEnabled(False)
             self.runopt_pushButton.setEnabled(False)
             self.process = None
@@ -3348,6 +3380,8 @@ class Ui_interaction_strength_Dialog(object):
         #self.Kad_value.setText(_translate("Dialog", str(self.Kad)))
         #self.Kbd_value.setText(_translate("Dialog", str(self.Kbd)))
         #self.Kdd_value.setText(_translate("Dialog", str(self.Kdd)))
+
+    
 
 if __name__ == "__main__":
     import sys
