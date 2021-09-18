@@ -866,6 +866,7 @@ class Ui_MainWindow(object):
         self.actionExport_data = QtWidgets.QAction(MainWindow)
         self.actionExport_data.setObjectName("actionExport_data")
         self.actionExport_data.triggered.connect(self.save_project)
+        self.actionExport_data.setEnabled(False)
         self.actionAbout = QtWidgets.QAction(MainWindow)
         self.actionAbout.setObjectName("actionAbout")
         self.actionDocumentation = QtWidgets.QAction(MainWindow)
@@ -880,19 +881,20 @@ class Ui_MainWindow(object):
         self.actionLoad_data = QtWidgets.QAction(MainWindow)
         self.actionLoad_data.setWhatsThis("")
         self.actionLoad_data.setObjectName("actionLoad_data")
+        self.actionLoad_data.triggered.connect(self.load_project)
         self.actionRestart = QtWidgets.QAction(MainWindow)
         self.actionRestart.setWhatsThis("")
         self.actionRestart.triggered.connect(self.restart)
         self.actionLoad_data.setObjectName("actionRestart")
-        self.actionSimulation = QtWidgets.QAction(MainWindow)
-        self.actionSimulation.setObjectName("actionSimulation")
+        #self.actionSimulation = QtWidgets.QAction(MainWindow)
+        #self.actionSimulation.setObjectName("actionSimulation")
         self.actionGraphs = QtWidgets.QAction(MainWindow)
         self.actionGraphs.setObjectName("actionGraphs")
         self.menuFile.addAction(self.actionExport_data)
         self.menuFile.addAction(self.actionLoad_data)
         self.menuFile.addAction(self.actionRestart)
         self.menuSettings.addAction(self.actionReconstruction)
-        self.menuSettings.addAction(self.actionSimulation)
+        #self.menuSettings.addAction(self.actionSimulation)
         self.menuHelp.addAction(self.actionAbout)
         self.menuHelp.addAction(self.actionDocumentation)
         self.menubar.addAction(self.menuFile.menuAction())
@@ -1077,7 +1079,7 @@ class Ui_MainWindow(object):
         self.actionContacts.setText(_translate("MainWindow", "Contacts"))
         self.actionLoad_data.setText(_translate("MainWindow", "Load Project"))
         self.actionRestart.setText(_translate("MainWindow", "Restart"))
-        self.actionSimulation.setText(_translate("MainWindow", "Simulation"))
+        #self.actionSimulation.setText(_translate("MainWindow", "Simulation"))
         #self.actionGraphs.setText(_translate("MainWindow", "Graphs"))
 
 
@@ -1106,6 +1108,461 @@ class Ui_MainWindow(object):
             print("Error haciendo zipfile")
         
 
+    def load_project(self):
+        dlg = QtWidgets.QFileDialog()
+        project_file = str(dlg.getOpenFileName()[0])
+        if project_file:
+            filespath = re.search(".+/", project_file)[0]
+            
+            with ZipFile(project_file, "r") as zip_ref:
+                zip_ref.extractall(filespath)
+                #print("archivo descomprimido")
+            initial_islet_file_load = glob.glob(filespath+'/**/*_initial.txt', recursive = True)
+            if initial_islet_file_load:
+                self.exp_islet_data = np.loadtxt(initial_islet_file_load[0])
+                self.tabWidget_islet_stats.setTabEnabled(0, True)
+                self.tabWidget_Plots.setTabEnabled(0, True)
+                self.plot_initial_islet_load()
+                # se genera la estadistica
+                self.initial_islet_stats_load()
+
+            final_islet_file_load = glob.glob(filespath+'/**/*_postprocessed_islet.txt', recursive = True)
+            
+            process_log_file_load = glob.glob(filespath+'/**/*_process_log.txt', recursive = True)
+            if final_islet_file_load:
+                self.current_islet_file = initial_islet_file_load[0][:-8]
+                self.post_processed_data = np.loadtxt(final_islet_file_load[0])
+                self.tabWidget_islet_stats.setTabEnabled(1, True)
+                self.tabWidget_Plots.setTabEnabled(1, True)
+                self.plot_reconstructed_islet()
+                self.contactos_load()
+                self.tabWidget_islet_stats.setTabEnabled(2, True)
+                self.tabWidget_Plots.setTabEnabled(2, True)
+                self.build_network_load()
+                self.tabWidget_islet_stats.setTabEnabled(3, True)
+                self.tabWidget_Plots.setTabEnabled(3, True)
+            if process_log_file_load:
+                self.reconstructed_islet_stats(self.post_processed_data)
+
+            sim_results_file_load = glob.glob(filespath+'/**/*_kuramoto_angles.data', recursive = True)
+            if sim_results_file_load:
+                self.sim_results_load = np.loadtxt(sim_results_file_load[0])
+                self.plot_kuramoto_results_load()
+            self.actionExport_data.setEnabled(False)
+            self.actionReconstruction.setEnabled(False)
+            self.config_reconstruction_button.setEnabled(False)
+            self.load_islet_button.setEnabled(False)
+            self.load_islet_status_label.setEnabled(False)
+
+            
+            
+    ## funcion que grafica islote inicial
+    def plot_initial_islet_load(self):
+        #new_tab = QWidget()
+        layout = QtWidgets.QVBoxLayout()
+        self.initial_islet_plot_tab.setLayout(layout)
+
+        figure = plt.figure()
+        figure.subplots_adjust(left=0.1, right=0.99, bottom=0.05, top=1.0, wspace=0.2, hspace=0.2)
+        new_canvas = FigureCanvas(figure)
+        new_canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
+        new_canvas.setFocus()
+        
+        ax = Axes3D(figure)
+        ax.view_init(elev = -80., azim = 90)
+        ax.set_xlabel('X ('+r'$\mu m$'+')')
+        ax.set_ylabel('Y ('+r'$\mu m$'+')')
+        ax.set_zlabel('Z ('+r'$\mu m$'+')')
+        
+        #ax.set_xlim(-10, 10)
+        #ax.set_ylim(-10, 10)
+        #ax.set_zlim(-10, 10)
+
+        for cell in self.exp_islet_data:
+            x_coord = cell[3]
+            y_coord = cell[4]
+            z_coord = cell[5]
+            # si no hay columna de radio
+            #r_cell = cell[0]
+            r_cell = 8.0
+            cell_type = cell[2]
+            if cell_type == 12.:
+                cell_color = "g"
+            elif cell_type == 11.:
+                cell_color = "r"
+            elif cell_type == 13:
+                cell_color = "b"
+            else:
+                cell_color = "k"
+            s = Sphere(ax, x = x_coord, y = y_coord, z = z_coord, radius = r_cell, detail_level = 10, rstride = 2, cstride = 2, color = cell_color)
+            #s.modify_x(2)
+
+        center_coords = self.islet_center(self.exp_islet_data[:,3:])
+        ax.scatter(center_coords[0], center_coords[1], center_coords[2], color="Red", label=r'$\alpha$'+"-cells")
+        ax.scatter(center_coords[0], center_coords[1], center_coords[2], color="Green", label=r'$\beta$'+"-cells")
+        ax.scatter(center_coords[0], center_coords[1], center_coords[2], color="Blue", label=r'$\delta$'+"-cells")
+        ax.legend(frameon=False, loc='lower center', ncol=3)
+        #ax.scatter(self.exp_islet_data[:,1], self.exp_islet_data[:,2], self.exp_islet_data[:,3],c=self.pointcolors(self.exp_islet_data[:,0]))
+        #c=self.pointcolors(self.exp_islet_data[:,0]), label=self.cell_labels(self.exp_islet_data[:,0])
+        
+        ax.mouse_init()
+
+
+        new_toolbar = NavigationToolbar(new_canvas, self.initial_islet_plot_tab)
+        unwanted_buttons = ["Subplots", "Zoom"]
+        for x in new_toolbar.actions():
+            if x.text() in unwanted_buttons:
+                new_toolbar.removeAction(x)
+
+        layout.addWidget(new_canvas)
+        layout.addWidget(new_toolbar)
+        #self.tabWidget_stats.addTab(new_tab, "txt")
+        self.toolbar_handles.append(new_toolbar)
+        self.canvases.append(new_canvas)
+        self.figure_handles.append(figure)
+        self.tab_handles.append(self.initial_islet_plot_tab)             
+
+    # funcion que saca estadística de islote inicial
+    def initial_islet_stats_load(self):
+        
+        #stats islote
+        ncells = np.shape(self.exp_islet_data)[0]
+        self.ini_ncells_value.setText(str(ncells))
+        self.ini_ncells_perc.setText(str(100.00) + " %")
+        
+        #stats alfas
+        nalphas = np.count_nonzero(self.exp_islet_data[:,2] == 11.)
+        perc_alphas = np.round(nalphas/ncells*100, 2)
+        self.ini_alphacells_value.setText(str(nalphas))
+        self.ini_alphacells_perc.setText(str(perc_alphas) + " %")
+
+        nbetas = np.count_nonzero(self.exp_islet_data[:,2] == 12.)
+        perc_betas = np.round(nbetas/ncells * 100, 2)
+        self.ini_betacells_value.setText(str(nbetas))
+        self.ini_betacells_perc.setText(str(perc_betas)+ " %")
+
+        ndeltas  = np.count_nonzero(self.exp_islet_data[:,2] == 13.)
+        perc_deltas = np.round(ndeltas * 100.  / ncells,2)
+        self.ini_deltacells_value.setText(str(ndeltas))
+        self.ini_deltacells_perc.setText(str(perc_deltas)+ " %")
+        #print("nalfas = " + str(nalphas) +" "+ str(perc_alphas))
+        #print("nbetas = " + str(nbetas) +" "+ str(perc_betas))
+        #print("ndeltas = " + str(ndeltas) +" "+ str(perc_deltas))
+
+
+    def build_network_load(self):
+        isletdata = self.post_processed_data
+        # global connectivity
+        #g_connectivity = np.loadtxt(self.current_islet_file[:-4]+"_all_contacts.txt")
+        np.fill_diagonal(self.contacts_islet['all'], 0.)
+        tipo_global = isletdata[:,2]
+        G_global = nx.from_numpy_matrix(self.contacts_islet['all'])
+        self.tabWidget_Plots.setTabEnabled(3, True)
+        self.tabWidget_Plots.setCurrentIndex(3)
+        self.tabWidget_islet_stats.setTabEnabled(3, True)
+        self.tabWidget_islet_stats.setCurrentIndex(3)
+        #self.network_status_button.setText("Network generated")
+        #self.network_status_button.setStyleSheet("color: Green")
+        self.plot_network(G_global, tipo_global)
+        self.network_stats(G_global)
+        #self.network_button.setEnabled(False)
+        #self.network_metrics_plots_butthon.setEnabled(True)
+
+
+    def plot_kuramoto_results_load(self):
+        data = self.sim_results_load
+        print(np.shape(data))
+        layout = QtWidgets.QVBoxLayout()
+        self.kuramoto_results_tab = QtWidgets.QWidget()
+        self.kuramoto_results_tab.setObjectName("kuramoto_results_tab")
+        self.kuramoto_results_tab.setLayout(layout)
+
+        figure, (ax1, ax2) = plt.subplots(2)
+        #figure = plt.figure()
+        #figure.subplots_adjust(left=0.1, right=0.99, bottom=0.05, top=1.0, wspace=0.2, hspace=0.2)
+        new_canvas = FigureCanvas(figure)
+        new_canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
+        new_canvas.setFocus()
+        
+        #np.linspace(0, model.T, int(model.T/model.dt)),
+        ax2.plot(data[:,0],[self.phase_coherence(vec)
+            for vec in data[:,self.ind_alfas]], 'o')
+        ax2.get_yaxis().get_major_formatter().set_useOffset(False)
+        ax2.get_yaxis().set_major_formatter(FormatStrFormatter('%.2f'))
+        ax2.set_xlabel("Time (s)")
+        ax2.set_ylabel("Sync index")
+
+        #phase_coherence_alphas = self.phase_coherence(data[:, self.ind_alfas+1].T)
+        #phase_coherence_betas = self.phase_coherence(data[:, self.ind_betas+1].T)
+        #phase_coherence_deltas = self.phase_coherence(data[:, self.ind_deltas+1].T)
+        #phase_coherence_islet = self.phase_coherence(data[:, 1:].T)
+        #plt.plot(theta_data[:,0],[phase_coherence(vec) for vec in theta_data[:,1:]],'o')
+
+
+        sum_osc_alphas = np.sum(np.sin(data[:, self.ind_alfas+1]), 1)
+        sum_osc_betas = np.sum(np.sin(data[:, self.ind_betas+1]), 1)
+        sum_osc_deltas = np.sum(np.sin(data[:,self.ind_deltas+1]), 1)
+        sum_osc_islote = np.sum(np.sin(data[:, 1:]), 1)
+
+        
+        #fig.suptitle('Vertically stacked subplots')
+        ax1.plot(data[:,0],sum_osc_islote, color="Black", label = "Islet")
+        ax1.plot(data[:,0],sum_osc_alphas, color="Red", label = r'$\alpha$'+'-cells')
+        ax1.plot(data[:,0],sum_osc_betas, color="Green", label = r'$\beta$'+'-cells')
+        ax1.plot(data[:,0],sum_osc_deltas, color="Blue", label = r'$\delta$'+'-cells')
+        ax1.set_xlabel("Time (s)")
+        ax1.set_ylabel("Sin("+r'$\theta$'+")")
+        ax1.legend(frameon=False, loc='lower center', ncol=4, bbox_to_anchor=(0.5, 1.01))
+        #ax2.plot(phase_coherence_islet, color="Black")
+        #ax2.plot(phase_coherence_alphas, color="Red")
+        #ax2.plot(phase_coherence_betas, color="Green")
+        #ax2.plot(phase_coherence_deltas, color="Blue")
+        #ax.mouse_init()
+
+        new_toolbar = NavigationToolbar(new_canvas, self.kuramoto_results_tab)
+        unwanted_buttons = ["Subplots"]
+        for x in new_toolbar.actions():
+            if x.text() in unwanted_buttons:
+                new_toolbar.removeAction(x)
+
+        layout.addWidget(new_canvas)
+        layout.addWidget(new_toolbar)
+        #self.tabWidget_stats.addTab(new_tab, "txt")
+        self.tabWidget_Plots.addTab(self.kuramoto_results_tab, "Simulation")
+        self.toolbar_handles.append(new_toolbar)
+        self.canvases.append(new_canvas)
+        self.figure_handles.append(figure)
+        #self.tab_handles.append(self.contacts_plot_tab)    
+        self.tab_handles.append(self.kuramoto_results_tab)
+        self.tabWidget_Plots.setCurrentIndex(4)
+
+    def contactos_load(self):
+        isletdata = self.post_processed_data
+        # contactos de cualquier tipo
+        contacts_global = 0
+        # contactos alfa-alfa
+        contacts_alfas = 0
+        # contactos beta-beta
+        contacts_betas = 0
+        # contactos delta-delta
+        contacts_deltas = 0
+        # contactos alfa-beta
+        contacts_alfas_betas = 0
+        # contactos alfas-delta
+        contacts_alfas_deltas = 0
+        # contactos betas-deltas
+        contacts_betas_deltas = 0
+        # Matriz de conectividad b-b y b-d
+        contact_matrix_bb_bd = []
+        # Matriz de conectividad a-a
+        contact_matrix_aa = []
+        # Matriz de conectividad a-b
+        contact_matrix_ab = []
+        # Matriz de conetividad a-d
+        contact_matrix_ad = []
+        # Matriz de conectividad b-b
+        contact_matrix_bb = []
+        # Matriz de conectividad b-d 
+        contact_matrix_bd = []
+        # Matriz de conectividad d-d
+        contact_matrix_dd = []
+        # Matriz de conectividad global
+        contact_matrix = []
+        i = 0
+        for cell1 in isletdata:
+            x1 = cell1[3]
+            y1 = cell1[4]
+            z1 = cell1[5]
+            # todos
+            cell1_contact = []
+            # bb-bd
+            cell1_contact_bb_bd = []
+            # aa
+            cell1_contact_aa = []
+            # ab
+            cell1_contact_ab = []
+            # ad
+            cell1_contact_ad = []
+            # bb
+            cell1_contact_bb = []
+            # bd 
+            cell1_contact_bd = []
+            # dd
+            cell1_contact_dd = []
+            j = 0
+            for cell2 in isletdata:
+                x2 = cell2[3]
+                y2 = cell2[4]
+                z2 = cell2[5]
+                if i == j:
+                    cell1_contact.append(cell1[2])
+                    cell1_contact_bb_bd.append(0)
+                    cell1_contact_aa.append(0)
+                    cell1_contact_ab.append(0)
+                    cell1_contact_ad.append(0)
+                    cell1_contact_bb.append(0)
+                    cell1_contact_bd.append(0)
+                    cell1_contact_dd.append(0)
+                    j = j + 1
+                    continue
+                d12 = np.sqrt( (x2 - x1)**2 + (y2 - y1)**2 + (z2 -z1)**2)
+                # contacto de cualquier tipo
+                if cell1[0] + cell2[0] + self.contacttol >= d12:
+                    cell1_contact.append(1)
+                    contacts_global +=1
+                else:
+                    cell1_contact.append(0)
+                # betas-betas    
+                if (cell1[2] == 12.0 and cell2[2] == 12.0):
+                    cell1_contact_aa.append(0)
+                    cell1_contact_ab.append(0)
+                    cell1_contact_ad.append(0)
+                    cell1_contact_bd.append(0)
+                    cell1_contact_dd.append(0)
+                    if cell1[0] + cell2[0] + self.contacttol >= d12:
+                        cell1_contact_bb_bd.append(1)
+                        cell1_contact_bb.append(1)
+                        contacts_betas += 1
+                    else:
+                        cell1_contact_bb_bd.append(0)
+                        cell1_contact_bb.append(0)
+                # alfas-alfas
+                elif (cell1[2] == 11.0 and cell2[2] == 11.0):
+                    cell1_contact_bb_bd.append(0)
+                    cell1_contact_ab.append(0)
+                    cell1_contact_ad.append(0)
+                    cell1_contact_bb.append(0)
+                    cell1_contact_bd.append(0)
+                    cell1_contact_dd.append(0)
+                    if cell1[0] + cell2[0] + self.contacttol >= d12:
+                        contacts_alfas += 1
+                        cell1_contact_aa.append(1)
+                    else:
+                        cell1_contact_aa.append(0)
+                # deltas-deltas
+                elif (cell1[2] == 13.0 and cell2[2] == 13.0):
+                    cell1_contact_bb_bd.append(0)
+                    cell1_contact_aa.append(0)
+                    cell1_contact_ab.append(0)
+                    cell1_contact_ad.append(0)
+                    cell1_contact_bd.append(0)
+                    cell1_contact_bb.append(0)
+                    if cell1[0] + cell2[0] + self.contacttol >= d12:
+                        contacts_deltas += 1
+                        cell1_contact_dd.append(1)
+                    else:
+                        cell1_contact_dd.append(0)
+                # betas - deltas
+                elif (cell1[2] == 12.0 and cell2[2] == 13.0) or (cell1[2] == 13.0 and cell2[2] == 12.0):
+                    cell1_contact_aa.append(0)
+                    cell1_contact_ab.append(0)
+                    cell1_contact_ad.append(0)
+                    cell1_contact_bb.append(0)
+                    cell1_contact_dd.append(0)
+                    if cell1[0] + cell2[0] + self.contacttol >= d12:
+                        cell1_contact_bb_bd.append(1)
+                        contacts_betas_deltas += 1
+                        cell1_contact_bd.append(1)
+                    else:
+                        cell1_contact_bb_bd.append(0)
+                        cell1_contact_bd.append(0)
+                # alfas - betas
+                elif (cell1[2] == 11.0 and cell2[2] == 12.0) or (cell1[2] == 12.0 and cell2[2] == 11.0):
+                    cell1_contact_bb_bd.append(0)
+                    cell1_contact_aa.append(0)
+                    cell1_contact_ad.append(0)
+                    cell1_contact_bb.append(0)
+                    cell1_contact_dd.append(0)
+                    cell1_contact_bd.append(0)
+                    if cell1[0] + cell2[0] + self.contacttol >= d12:
+                        contacts_alfas_betas += 1
+                        cell1_contact_ab.append(1)
+                    else:
+                        cell1_contact_ab.append(0)
+                elif (cell1[2] == 11.0 and cell2[2] == 13.0) or (cell1[2] == 13.0 and cell2[2] == 11.0):
+                    cell1_contact_bb_bd.append(0)
+                    cell1_contact_aa.append(0)
+                    cell1_contact_ab.append(0)
+                    cell1_contact_bd.append(0)
+                    cell1_contact_bb.append(0)
+                    cell1_contact_dd.append(0)
+                    if cell1[0] + cell2[0] + self.contacttol >= d12:
+                        contacts_alfas_deltas += 1 
+                        cell1_contact_ad.append(1)
+                    else:
+                        cell1_contact_ad.append(0)
+                else:
+                    print('Caso raro')
+                    #print(str(cell1[2]) + ' , ' + str(cell2[2]))
+                    #cell1_contact.append(0)
+                #print(np.sum(cell1_contact))
+                j = j + 1
+            #print(np.shape(cell1_contact))
+            contact_matrix.append(np.asarray(cell1_contact))
+            contact_matrix_bb_bd.append(np.asarray(cell1_contact_bb_bd))
+            contact_matrix_aa.append(np.asarray(cell1_contact_aa))
+            contact_matrix_ab.append(np.asarray(cell1_contact_ab))
+            contact_matrix_ad.append(np.asarray(cell1_contact_ad))
+            contact_matrix_bb.append(np.asarray(cell1_contact_bb))
+            contact_matrix_bd.append(np.asarray(cell1_contact_bd))
+            contact_matrix_dd.append(np.asarray(cell1_contact_dd))
+            i = i + 1
+        
+        
+        self.contacts_islet['all'] = np.stack(np.array(contact_matrix), axis = 0)
+        #np.savetxt(self.current_islet_file[:-4]+"_all_contacts.txt", self.contacts_islet['all'], fmt='%1.0f')
+        self.contacts_islet['bbbd'] = np.stack(np.array(contact_matrix_bb_bd), axis=0)
+        #np.savetxt(self.current_islet_file[:-4]+"_bbbd_contacts.txt", self.contacts_islet['bbbd'], fmt='%1.0f')
+        self.contacts_islet['aa'] = np.stack(np.array(contact_matrix_aa), axis=0)
+        #np.savetxt(self.current_islet_file[:-4]+"_aa_contacts.txt", self.contacts_islet['aa'], fmt='%1.0f')
+        self.contacts_islet['ab'] = np.stack(np.array(contact_matrix_ab), axis=0)
+        #np.savetxt(self.current_islet_file[:-4]+"_ab_contacts.txt", self.contacts_islet['ab'], fmt='%1.0f')
+        self.contacts_islet['ad'] = np.stack(np.array(contact_matrix_ad), axis=0)
+        #np.savetxt(self.current_islet_file[:-4]+"_ad_contacts.txt", self.contacts_islet['ad'], fmt='%1.0f')
+        self.contacts_islet['bb'] = np.stack(np.array(contact_matrix_bb), axis=0)
+        #np.savetxt(self.current_islet_file[:-4]+"_bb_contacts.txt", self.contacts_islet['bb'], fmt='%1.0f')
+        self.contacts_islet['bd'] = np.stack(np.array(contact_matrix_bd), axis=0)
+        #np.savetxt(self.current_islet_file[:-4]+"_bd_contacts.txt", self.contacts_islet['bd'], fmt='%1.0f')
+        self.contacts_islet['dd'] = np.stack(np.array(contact_matrix_dd), axis=0)
+        #np.savetxt(self.current_islet_file[:-4]+"_dd_contacts.txt", self.contacts_islet['dd'], fmt='%1.0f')
+        #contact_matrix.astype('int')
+        contact_count_vec = [contacts_global/2, contacts_alfas/2, contacts_betas/2, contacts_deltas/2, contacts_alfas_betas/2, contacts_alfas_deltas/2, contacts_betas_deltas/2]
+        #print(contact_count_vec)
+        #return [contacts_islet, contact_count_vec]
+
+        self.total_contacts_value.setText(str(contact_count_vec[0]))
+        self.total_contacts_perc.setText("100 %")
+        self.alphaalpha_contacts_value.setText(str(contact_count_vec[1]))
+        self.alphaalpha_contacts_perc.setText(str(np.round(contact_count_vec[1]*100./contact_count_vec[0],2))+" %")
+        self.betabeta_contacts_value.setText(str(contact_count_vec[2]))
+        self.betabeta_contacts_perc.setText(str(np.round(contact_count_vec[2]*100./contact_count_vec[0],2))+" %")
+        self.deltadelta_contacts_value.setText(str(contact_count_vec[3]))
+        self.deltadelta_contacts_perc.setText(str(np.round(contact_count_vec[3]*100./contact_count_vec[0],2))+" %")
+        self.alphabeta_contacts_value.setText(str(contact_count_vec[4]))
+        self.alphabeta_contacts_perc.setText(str(np.round(contact_count_vec[4]*100./contact_count_vec[0],2))+" %")
+        self.alphadelta_contacts_value.setText(str(contact_count_vec[5]))
+        self.alphadelta_contacts_perc.setText(str(np.round(contact_count_vec[5]*100./contact_count_vec[0],2))+" %")
+        self.betadelta_contacts_value.setText(str(contact_count_vec[6]))
+        self.betadelta_contacts_perc.setText(str(np.round(contact_count_vec[6]*100./contact_count_vec[0],2))+" %")
+        homotypic_contacts = np.sum(contact_count_vec[1:4])
+        self.homotypic_contacts_value.setText(str(homotypic_contacts))
+        self.homotypic_contacts_perc.setText(str(np.round(homotypic_contacts*100./contact_count_vec[0],2))+" %")
+        heterotypic_contacts = np.sum(contact_count_vec[4:])
+        self.heterotypic_contacts_value.setText(str(heterotypic_contacts))
+        self.heterotypic_contacts_perc.setText(str(np.round(heterotypic_contacts*100./contact_count_vec[0],2))+" %")
+        #return [contacts_islet, contact_count_vec]
+        self.tabWidget_islet_stats.setTabEnabled(2, True)
+        self.tabWidget_islet_stats.setCurrentIndex(2)
+            
+        self.tabWidget_Plots.setTabEnabled(2, True)
+        self.tabWidget_Plots.setCurrentIndex(2)
+        self.plot_contacts(isletdata)
+        #self.contacts_button.setEnabled(False)
+        #self.network_button.setEnabled(True)
+        #self.contacts_status_label.setText("Contacts identified")
+        #self.contacts_status_label.setStyleSheet("color: Green")
+        self.tabWidget_settings.setTabEnabled(1, True)
+        #self.contacts_plot_button.setEnabled(False)
 
     def disable_random_phase_config_button(self, radio):
         if radio.text() == "Random":
@@ -1151,6 +1608,8 @@ class Ui_MainWindow(object):
         center_y = np.mean(coords_matrix[:,1])
         center_z = np.mean(coords_matrix[:,2])
         return [center_x, center_y, center_z]
+
+
 
     ## funcion que grafica islote inicial
     def plot_initial_islet(self):
@@ -1406,9 +1865,10 @@ class Ui_MainWindow(object):
                 self.final_islet_data = np.loadtxt(self.current_islet_file[:-4]+'_reconstructed.txt')
                 self.post_processed_data = self.postprocessIslet(self.final_islet_data)
                 self.plot_reconstructed_islet()
-                self.reconstructed_islet_stats(self. post_processed_data)
+                self.reconstructed_islet_stats(self.post_processed_data)
                 self.processar_output_stats()
                 self.plotOptConvergence()
+                self.actionExport_data.setEnabled(True)
 
                 
         except Exception as e:
