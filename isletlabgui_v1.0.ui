@@ -1837,9 +1837,9 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>490</y>
+        <y>590</y>
         <width>321</width>
-        <height>81</height>
+        <height>61</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -1850,6 +1850,74 @@
       </property>
       <property name="text">
        <string>Run Simulation</string>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="sim_settings_groupbox_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>480</y>
+        <width>321</width>
+        <height>101</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>CUDA settings</string>
+      </property>
+      <widget class="QWidget" name="formLayoutWidget_2">
+       <property name="geometry">
+        <rect>
+         <x>9</x>
+         <y>29</y>
+         <width>301</width>
+         <height>61</height>
+        </rect>
+       </property>
+       <layout class="QFormLayout" name="formLayout_2">
+        <item row="0" column="0">
+         <widget class="QLabel" name="sim_total_time_label_2">
+          <property name="text">
+           <string>Blocks</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="total_time_lineedit_2">
+          <property name="maximumSize">
+           <size>
+            <width>500</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::RightToLeft</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="sim_timestep_label_2">
+          <property name="text">
+           <string>Threads</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="timestep_lineedit_2"/>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>660</y>
+        <width>57</width>
+        <height>15</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
       </property>
      </widget>
     </widget>
@@ -1897,7 +1965,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

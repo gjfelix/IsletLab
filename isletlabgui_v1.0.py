@@ -717,6 +717,7 @@ class Ui_MainWindow(object):
         self.initialphase_config_button = QtWidgets.QPushButton(self.verticalLayoutWidget_7)
         self.initialphase_config_button.setObjectName("initialphase_config_button")
         self.initialphase_config_button.clicked.connect(self.selectInitialPhaseConfig)
+        self.initialphase_config_button.setEnabled(False)
         self.verticalLayout_7.addWidget(self.initialphase_config_button)
 
         #self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
@@ -815,8 +816,40 @@ class Ui_MainWindow(object):
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.save_mult_lineedit)
 
 
+        self.cuda_settings_groupbox = QtWidgets.QGroupBox(self.simulation_tab)
+        self.cuda_settings_groupbox.setGeometry(QtCore.QRect(10, 480, 321, 101))
+        self.cuda_settings_groupbox.setObjectName("sim_settings_groupbox")
+        self.formLayoutWidgetcuda = QtWidgets.QWidget(self.cuda_settings_groupbox)
+        self.formLayoutWidgetcuda.setGeometry(QtCore.QRect(9, 29, 301, 61))
+        self.formLayoutWidgetcuda.setObjectName("formLayoutWidget")
+        self.formLayoutcuda = QtWidgets.QFormLayout(self.formLayoutWidgetcuda)
+        self.formLayoutcuda.setContentsMargins(0, 0, 0, 0)
+        self.formLayoutcuda.setObjectName("formLayout")
+        self.nblocks_label = QtWidgets.QLabel(self.formLayoutWidgetcuda)
+        self.nblocks_label.setObjectName("nblocks_label")
+        self.formLayoutcuda.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.nblocks_label)
+        self.nblocks_lineedit = QtWidgets.QLineEdit(self.formLayoutWidgetcuda)
+        self.nblocks_lineedit.setMaximumSize(QtCore.QSize(500, 16777215))
+        self.nblocks_lineedit.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.nblocks_lineedit.setObjectName("total_time_lineedit")
+        self.nblocks_lineedit.setText(str(self.nblocks))
+        nblocks_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.nblocks_lineedit)
+        self.nblocks_lineedit.setValidator(nblocks_validator)
+        self.formLayoutcuda.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.nblocks_lineedit)
+        
+        self.ncudathreads_label = QtWidgets.QLabel(self.formLayoutWidgetcuda)
+        self.ncudathreads_label.setObjectName("nthreads_label")
+        self.formLayoutcuda.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.ncudathreads_label)
+        self.ncudathreads_lineedit = QtWidgets.QLineEdit(self.formLayoutWidgetcuda)
+        self.ncudathreads_lineedit.setObjectName("timestep_lineedit")
+        self.ncudathreads_lineedit.setText(str(self.ncudathreads))
+        # para validacion de entradas solo numeros
+        ncudathreads_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.ncudathreads_lineedit)
+        self.ncudathreads_lineedit.setValidator(ncudathreads_validator)
+        self.formLayoutcuda.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.ncudathreads_lineedit)
+
         self.run_simulation_button = QtWidgets.QPushButton(self.simulation_tab)
-        self.run_simulation_button.setGeometry(QtCore.QRect(10, 490, 321, 81))
+        self.run_simulation_button.setGeometry(QtCore.QRect(10, 590, 321, 61))
         self.run_simulation_button.clicked.connect(self.run_kuramoto_simulation)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -830,7 +863,7 @@ class Ui_MainWindow(object):
         self.sim_status_label.setObjectName("save_mult_label")
         self.sim_status_label.setAlignment(QtCore.Qt.AlignCenter)
         self.sim_status_label.setEnabled(True)
-        self.sim_status_label.setGeometry(QtCore.QRect(10, 580, 321, 16))
+        self.sim_status_label.setGeometry(QtCore.QRect(10, 665, 321, 16))
         #self.sim_status_label.setText("Test Label")
 
         self.tabWidget_settings.addTab(self.simulation_tab, "")
@@ -1065,6 +1098,9 @@ class Ui_MainWindow(object):
         self.sim_total_time_label.setText(_translate("MainWindow", "Total time"))
         self.sim_timestep_label.setText(_translate("MainWindow", "Time step"))
         self.save_mult_label.setText(_translate("MainWindow", "Save step"))
+        self.cuda_settings_groupbox.setTitle(_translate("MainWindow", "CUDA settings"))
+        self.nblocks_label.setText(_translate("MainWindow", "Blocks"))
+        self.ncudathreads_label.setText(_translate("MainWindow", "Threads"))
         self.run_simulation_button.setText(_translate("MainWindow", "Run Simulation"))
         self.tabWidget_settings.setTabText(self.tabWidget_settings.indexOf(self.simulation_tab), _translate("MainWindow", "Simulation"))
         self.tabWidget_Plots.setTabText(self.tabWidget_Plots.indexOf(self.initial_islet_plot_tab), _translate("MainWindow", "Initial Islet"))
@@ -2623,25 +2659,25 @@ class Ui_MainWindow(object):
     def open_const_freq_settings(self):
         const_freq_dialog = QtWidgets.QDialog()
         ui = Ui_const_freq_dialog()
-        ui.setupUi(const_freq_dialog, self.constfreq)
+        ui.setupUi(const_freq_dialog, self.constfreq, "Constant frequency")
         const_freq_dialog.exec_()
         #ui.const_freq_value.setText(str(self.constfreq))
         
         # preventing empty form
         if ui.const_freq_value.text() == "":
-            ui.const_freq_value.setText(str(self.constfreq))
+            ui.const_freq_value.setText(str(np.round(self.constfreq,2)))
         else:
             self.constfreq = float(ui.const_freq_value.text())
 
     def open_const_phase_settings(self):
         initial_phase_dialog = QtWidgets.QDialog()
         ui = Ui_const_freq_dialog()
-        ui.setupUi(initial_phase_dialog, self.constphase)
+        ui.setupUi(initial_phase_dialog, self.constphase, "Constant phase")
         initial_phase_dialog.exec_()
         #ui.const_freq_value.setText(str(self.constphase))
         # preventing empty form
         if ui.const_freq_value.text() == "":
-            ui.const_freq_value.setText(str(self.constphase)) 
+            ui.const_freq_value.setText(str(np.round(self.constphase,2))) 
         else:
             self.constphase = float(ui.const_freq_value.text())
 
@@ -2652,12 +2688,12 @@ class Ui_MainWindow(object):
         ui.setupUi(random_freq_dialog, [self.meanfreq, self.sdfreq])
         random_freq_dialog.exec_()
         if ui.mean_value.text() == "":
-            ui.mean_value.setText(str(self.meanfreq)) 
+            ui.mean_value.setText(str(np.round(self.meanfreq))) 
         else:
             self.meanfreq = float(ui.mean_value.text())
 
         if ui.sd_value.text() == "":
-            ui.sd_value.setText(str(self.sdfreq)) 
+            ui.sd_value.setText(str(np.round(self.sdfreq))) 
         else:
             self.sdfreq = float(ui.sd_value.text())
 
@@ -2752,6 +2788,16 @@ class Ui_MainWindow(object):
             self.save_mult_lineedit.setText(str(self.saveMultiple))
         else:
             self.saveMultiple = int(self.save_mult_lineedit.text())
+
+        if self.nblocks_lineedit.text()=="":
+            self.nblocks_lineedit.setText(str(self.nblocks))
+        else:
+            self.nblocks = int(self.nblocks_lineedit.text())
+        if self.ncudathreads_lineedit.text()=="":
+            self.ncudathreads_lineedit.setText(str(self.ncudathreads))
+        else:
+            self.ncudathreads = int(self.ncudathreads_lineedit.text())
+
         try:
             # base cuda code
             fsource = open('kuramoto_islets.cu')
@@ -3143,7 +3189,7 @@ class Ui_reconstruction_settings_diag(object):
 
 
 class Ui_const_freq_dialog(object):
-    def setupUi(self, const_freq_dialog, constvalue):
+    def setupUi(self, const_freq_dialog, constvalue, title):
         self.constfreq = constvalue
 
         # para validacion de entradas solo numeros
@@ -3153,9 +3199,10 @@ class Ui_const_freq_dialog(object):
         const_freq_dialog.setMinimumSize(QtCore.QSize(294, 94))
         const_freq_dialog.setMaximumSize(QtCore.QSize(294, 94))
         self.const_freq_buttonBox = QtWidgets.QDialogButtonBox(const_freq_dialog)
-        self.const_freq_buttonBox.setGeometry(QtCore.QRect(-110, 50, 341, 32))
+        self.const_freq_buttonBox.setGeometry(QtCore.QRect(-150, 50, 341, 32))
         self.const_freq_buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.const_freq_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.const_freq_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Ok)
+        #self.const_freq_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.const_freq_buttonBox.setObjectName("const_freq_buttonBox")
         self.formLayoutWidget = QtWidgets.QWidget(const_freq_dialog)
         self.formLayoutWidget.setGeometry(QtCore.QRect(10, 10, 271, 31))
@@ -3168,20 +3215,21 @@ class Ui_const_freq_dialog(object):
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.const_freq_label)
         self.const_freq_value = QtWidgets.QLineEdit(self.formLayoutWidget)
         self.const_freq_value.setObjectName("const_freq_value")
+        self.const_freq_value.setMaxLength(6)
         self.const_freq_value.setText(str(self.constfreq))
         freq_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.const_freq_value)
         self.const_freq_value.setValidator(freq_validator)
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.const_freq_value)
         #self.const_freq_value.setText(str(constvalue))
-        self.retranslateUi(const_freq_dialog)
+        self.retranslateUi(const_freq_dialog, title)
         self.const_freq_buttonBox.accepted.connect(const_freq_dialog.accept)
         self.const_freq_buttonBox.rejected.connect(const_freq_dialog.reject)
         QtCore.QMetaObject.connectSlotsByName(const_freq_dialog)
 
-    def retranslateUi(self, const_freq_dialog):
+    def retranslateUi(self, const_freq_dialog, title):
         _translate = QtCore.QCoreApplication.translate
-        const_freq_dialog.setWindowTitle(_translate("const_freq_dialog", "Constant frequency"))
-        self.const_freq_label.setText(_translate("const_freq_dialog", "Constant frequency"))
+        const_freq_dialog.setWindowTitle(_translate("const_freq_dialog", "Configure"))
+        self.const_freq_label.setText(_translate("const_freq_dialog", title))
 
 
 class Ui_random_freq_dialog(object):
@@ -3196,9 +3244,10 @@ class Ui_random_freq_dialog(object):
         random_freq_dialog.setObjectName("random_freq_dialog")
         random_freq_dialog.resize(192, 120)
         self.buttonBox = QtWidgets.QDialogButtonBox(random_freq_dialog)
-        self.buttonBox.setGeometry(QtCore.QRect(-160, 80, 341, 32))
+        self.buttonBox.setGeometry(QtCore.QRect(-190, 80, 341, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Ok)
+        #self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.formLayoutWidget = QtWidgets.QWidget(random_freq_dialog)
         self.formLayoutWidget.setGeometry(QtCore.QRect(10, 10, 171, 61))
@@ -3212,6 +3261,7 @@ class Ui_random_freq_dialog(object):
         self.mean_value = QtWidgets.QLineEdit(self.formLayoutWidget)
         self.mean_value.setObjectName("mean_value")
         self.mean_value.setText(str(self.mean))
+        self.mean_value.setMaxLength(6)
         mean_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.mean_value)
         self.mean_value.setValidator(mean_validator)
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.mean_value)
@@ -3221,6 +3271,7 @@ class Ui_random_freq_dialog(object):
         self.sd_value = QtWidgets.QLineEdit(self.formLayoutWidget)
         self.sd_value.setObjectName("sd_value")
         self.sd_value.setText(str(self.sd))
+        self.sd_value.setMaxLength(6)
         sd_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.sd_value)
         self.sd_value.setValidator(sd_validator)
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.sd_value)
@@ -3254,9 +3305,10 @@ class Ui_interaction_strength_Dialog(object):
         Dialog.setObjectName("Dialog")
         Dialog.resize(232, 340)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
-        self.buttonBox.setGeometry(QtCore.QRect(41, 300, 150, 32))
+        self.buttonBox.setGeometry(QtCore.QRect(21, 300, 150, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Ok)
+        #self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox_int_strength_dialog")
         self.formLayoutWidget = QtWidgets.QWidget(Dialog)
         self.formLayoutWidget.setGeometry(QtCore.QRect(30, 10, 161, 291))
