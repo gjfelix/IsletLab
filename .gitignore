@@ -2,3 +2,11 @@
 *.png
 *.jpg
 __pycache__/
+dist/
+build/
+H52.txt
+H53.txt
+H54.txt
+H55.txt
+H56.txt
+*.spec

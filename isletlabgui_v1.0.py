@@ -1853,7 +1853,7 @@ class Ui_MainWindow(object):
             process_log_file = self.current_islet_file[:-4] + "_process_log.txt"
             lines[386] = 'FILE *archivoLog = fopen("'+ process_log_file + '", "w");\n'
 
-            lines[505] = "temp = " + str(self.inittemp) +";\n"
+            lines[506] = "temp = " + str(self.inittemp) +";\n"
 
             #escribo archivo de salida
             for line in lines:
