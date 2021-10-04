@@ -19,8 +19,8 @@ from shape import Shape
 from sphere import Sphere
 from sys import platform as sys_pf
 
-from matplotlib.dates import date2num
-from matplotlib.ticker import ScalarFormatter, FormatStrFormatter
+#from matplotlib.dates import date2num
+
 from datetime import datetime
 
 import networkx as nx
@@ -40,8 +40,12 @@ else:
     from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
-
-
+#import matplotlib
+# from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+# from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+# import matplotlib.pyplot as plt
+# from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.ticker import ScalarFormatter, FormatStrFormatter
 
 
 class Ui_MainWindow(object):
@@ -1234,7 +1238,8 @@ class Ui_MainWindow(object):
         new_canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
         new_canvas.setFocus()
         
-        ax = Axes3D(figure)
+        ax = Axes3D(figure, auto_add_to_figure=False)
+        figure.add_axes(ax)
         ax.view_init(elev = -80., azim = 90)
         ax.set_xlabel('X ('+r'$\mu m$'+')')
         ax.set_ylabel('Y ('+r'$\mu m$'+')')
@@ -1689,7 +1694,8 @@ class Ui_MainWindow(object):
         new_canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
         new_canvas.setFocus()
         
-        ax = Axes3D(figure)
+        ax = Axes3D(figure, auto_add_to_figure=False)
+        figure.add_axes(ax)
         ax.view_init(elev = -80., azim = 90)
         ax.set_xlabel('X ('+r'$\mu m$'+')')
         ax.set_ylabel('Y ('+r'$\mu m$'+')')
@@ -1822,17 +1828,17 @@ class Ui_MainWindow(object):
             self.contacttol = float(ui.rec_settings_contacttol_value.text())
 
     def optimizeIslet(self):
+
         ### Generate C code using initial islet
-        
         #opt_start_time = datetime.now()
         # ini_islet_file is the path to the exp file
         try:
             # abro archivo a modificar 
             fsource = open("SA_Islote.c", "r")
             # nombre de archivo de salida
-            fout = self.current_islet_file[:-4] + "_opt.c"
+            #fout = self.current_islet_file[:-4] + "_opt.c"
             # abro archivo de salida
-            fsalida = open(fout, "w")
+            fsalida = open(self.current_islet_file[:-4] + "_opt.c", "w")
 
             # leo archivo original
             lines = fsource.readlines()
@@ -1876,9 +1882,9 @@ class Ui_MainWindow(object):
 
         try:
             if sys_pf == 'darwin':
-                subprocess.run(["gcc-10", fout , "-o", fout[:-2], "-lm", "-fopenmp"])
+                subprocess.run(["gcc-10", self.current_islet_file[:-4] + "_opt.c" , "-o", self.current_islet_file[:-4] + "_opt.c"[:-2], "-lm", "-fopenmp"])
             else:
-                subprocess.run(["gcc", fout , "-o", fout[:-2], "-lm", "-fopenmp"])
+                subprocess.run(["gcc", self.current_islet_file[:-4] + "_opt.c" , "-o", self.current_islet_file[:-4] + "_opt.c"[:-2], "-lm", "-fopenmp"])
             self.reconstruction_status_label.setText("Compilation success")
             self.reconstruction_status_label.setStyleSheet("color: Green")
         except:
@@ -1904,7 +1910,7 @@ class Ui_MainWindow(object):
             self.reconstruction_status_label.setText("Optimization in progress")
             self.reconstruction_status_label.setStyleSheet("color: Green")
             #print(fout)
-            self.optstatus, computing_time = self.launch_opt_window(fout)
+            self.optstatus, computing_time = self.launch_opt_window(self.current_islet_file[:-4] + "_opt.c")
             #print("Checo estatus: " + str(optstatus))
             #t = threading.Thread(target=self.run_code, args=(fout,))
             #t.start()
@@ -1970,7 +1976,8 @@ class Ui_MainWindow(object):
         new_canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
         new_canvas.setFocus()
         
-        ax = Axes3D(figure)
+        ax = Axes3D(figure, auto_add_to_figure=False)
+        figure.add_axes(ax)
         ax.view_init(elev = -80., azim = 90)
         ax.set_xlabel('X ('+r'$\mu m$'+')')
         ax.set_ylabel('Y ('+r'$\mu m$'+')')
@@ -2343,10 +2350,14 @@ class Ui_MainWindow(object):
         self.network_button.setEnabled(True)
         self.contacts_status_label.setText("Contacts identified")
         self.contacts_status_label.setStyleSheet("color: Green")
+        
         self.tabWidget_settings.setTabEnabled(1, True)
+        
         #self.contacts_plot_button.setEnabled(False)
 
-        
+    def no_cuda(self):
+        QtWidgets.QMessageBox.about(None, "CUDA was not found", "A CUDA capable GPU was not found. \nFunctional simulations will not be performed.")
+
     def plot_contacts(self, isletdata):
         layout = QtWidgets.QVBoxLayout()
         self.contacts_plot_tab.setLayout(layout)
@@ -2357,7 +2368,8 @@ class Ui_MainWindow(object):
         new_canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
         new_canvas.setFocus()
         
-        ax = Axes3D(figure)
+        ax = Axes3D(figure, auto_add_to_figure=False)
+        figure.add_axes(ax)
         ax.set_xlabel('X (' + r'$\mu$ m'+')')
         ax.set_ylabel('Y (' + r'$\mu$ m'+')')
         ax.set_zlabel('Z (' + r'$\mu$ m'+')')
@@ -2365,7 +2377,7 @@ class Ui_MainWindow(object):
         # grafico los puntos (celulas)
         scattercolors = self.pointcolors(isletdata[:,2])
         ax.scatter(isletdata[:,3], isletdata[:,4],isletdata[:,5], c=scattercolors, s=3)
-        ax.legend()
+        #ax.legend()
 
         #self.contacts_islet['bbbd'] = np.stack(np.array(contact_matrix_bb_bd), axis=0)
         #self.contacts_islet['aa'] = np.stack(np.array(contact_matrix_aa), axis=0)
@@ -2880,6 +2892,7 @@ class Ui_MainWindow(object):
             self.launch_cudasim_window(self.current_islet_file[:-4] + "_kuramoto_sim..")
             self.sim_status_label.setText("Simulation completed")
         except:
+            self.no_cuda()
             self.sim_status_label.setText("Error executing cuda simulation")
             self.sim_status_label.setStyleSheet("color:Red")
     
@@ -3178,9 +3191,9 @@ class Ui_reconstruction_settings_diag(object):
         self.rec_settings_initemp_value.setText(_translate("reconstruction_settings_diag", str(self.diaginitTemp)))
         self.rec_settings_tolpar_label.setText(_translate("reconstruction_settings_diag", "Tolerance parameter"))
         self.rec_settings_tolpar_value.setText(_translate("reconstruction_settings_diag", str(self.diagtolpar)))
-        self.rec_settings_maxiter_label.setText(_translate("reconstruction_settings_diag", "Iterations multiplier"))
+        self.rec_settings_maxiter_label.setText(_translate("reconstruction_settings_diag", "Iterations factor"))
         self.rec_settings_maxiter_value.setText(_translate("reconstruction_settings_diag", str(self.diagmaxiter)))
-        self.rec_settings_maxacc_label.setText(_translate("reconstruction_settings_diag", "Acceptance multiplier"))
+        self.rec_settings_maxacc_label.setText(_translate("reconstruction_settings_diag", "Acceptance factor"))
         self.rec_settings_maxacc_value.setText(_translate("reconstruction_settings_diag", str(self.diagmaxacc)))
         self.rec_settings_threads_label.setText(_translate("reconstruction_settings_diag", "Threads"))
         self.rec_settings_threads_value.setText(_translate("reconstruction_settings_diag", str(self.diagthreads)))

@@ -1,0 +1,7 @@
+name: isletlab_v1.0
+dependencies:
+  - numpy
+  - pyqt
+  - matplotlib
+  - networkx
+  - scipy
