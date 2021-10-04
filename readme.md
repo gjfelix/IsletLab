@@ -61,4 +61,7 @@ Current version of Isletlab has been fully tested in Ubuntu Linux 18.
    python isletlabgui_v1.0.py
    ```
 
-Currently I'm working on the detailed documentation. Please, if you are unable to run Isletlab do not hesitate to [contact me](gjfelix2005@gmail.com).
+Currently I'm working on the detailed documentation. Please, if you are unable to run Isletlab do not hesitate to send me an email (<gjfelix2005@gmail.com>). 
+
+In case you find a bug or want to contribute with an idea or request, please [create an issue](https://github.com/gjfelix/IsletLab/issues).
+

@@ -10,3 +10,4 @@ H54.txt
 H55.txt
 H56.txt
 *.spec
+!GUI_FullWindow.png
