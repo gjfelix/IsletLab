@@ -11,7 +11,7 @@
 
 ### Isletlab Project
 
-This software is lecensed under the GPL V3 Open Source Licence
+This software is licensed under the GPL V3 Open Source Licence
 
 Project created by:
 
@@ -63,7 +63,50 @@ Current version of Isletlab has been fully tested in Ubuntu Linux 18.
    python isletlabgui_v1.0.py
    ```
 
-Currently I'm working on the detailed documentation. Please, if you are unable to run Isletlab do not hesitate to send me an email (<gjfelix2005@gmail.com>). 
+====================================================================
+
+**Testing installation**
+
+Sample data is included in the repository to test IsletLab. 
+
+1. Click the "Load initial islet" button
+
+2. Select the "H51.txt" file containing the test data and click "Open".
+
+   If everything works as intended, a plot of the initial islet should be visible.
+
+3. Click the "Reconstruction settings" button.
+
+   - Change the number of threads to match the processor characteristics and click OK. 
+
+4. Click the "Reconstruct islet" button to open the "Reconstruction Log" window.
+
+5. Click the "Run" button. 
+
+   - Check that the IsletLab version appears at the "Reconstruction Log" window.
+   - Check that the number of overlapped cells in the initial islets is printed.
+   - For each iteration of the optimization algorithm the number of overlapped cells must be printed.
+   - Once the reconstruction is finished, the total "Computing time" is printed.
+
+6. Close the "Reconstruction Log " window.
+
+7. Click the "Cell-to-cell contacts" button.
+
+8. Click the "Build Network" button.
+
+9. Switch to the "Simulation" tab. (Only activated is a CUDA-capable NVIDIA video card is available).
+
+10. Configure the number of Blocks and Threads (depends on the NVIDIA card model).
+
+11. Click "Run Simulation" to open the "Simulation Log" window and click "Run". 
+
+12. Close the "Simulation Log" window once the calculation finishes.
+
+If all the steps were performed correctly, IsletLab was correctly installed.
+
+====================================================================
+
+Currently I'm working on the detailed documentation. Please, if you are unable to run IsletLab do not hesitate to send me an email (<gjfelix2005@gmail.com>). 
 
 In case you find a bug or want to contribute with an idea or request, please [create an issue](https://github.com/gjfelix/IsletLab/issues).
 
