@@ -39,29 +39,7 @@ Current version of Isletlab has been fully tested in Ubuntu Linux 18.
 - [ ] NVCC compiler ([CUDA toolkit](https://developer.nvidia.com/cuda-toolkit))
 - [ ] [CUDA capable NVIDIA GPU Device](https://developer.nvidia.com/cuda-gpus)
 
-**Installation**
 
-1. Clone the Isletlab repository (this page). If you downloaded the repository as a zip file, extract the files.
-
-2. Open the terminal and go to the repository folder.
-
-3. Create a conda environment using the **isletlabgui_v1.0.yml** file. All the python modules needed will be installed automatically.
-
-   ```
-   conda env create -f isletlabgui_v1.0.yml
-   ```
-
-4. Activate the new environment
-
-   ```
-   source activate isletlab_v1.0
-   ```
-
-5. Run Isletlab:
-
-   ```
-   python isletlabgui_v1.0.py
-   ```
 
 ====================================================================
 
