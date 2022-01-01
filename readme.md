@@ -32,6 +32,8 @@ Last update: January 2022
 Current version of Isletlab has been fully tested in Ubuntu Linux 18, Windows 10 and macOS 10.15.7 (Catalina)
 Note that functional simulations require a CUDA capable device (NVIDIA). Since Apple computers do not use this kind of graphic cards, it is not possible to perform functional simulations in macOS.
 
+Please visit the [project's Wiki](https://github.com/gjfelix/IsletLab/wiki) for detailed installation instructions.
+
 **Requirements:**
 
 - [ ] [Anaconda](https://anaconda.org/) (Python 3.8) 
