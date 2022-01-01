@@ -25,64 +25,19 @@ Website:<https://gjfelix.github.io>
 
 Email: gjfelix2005@gmail.com
 
-
-September 2021
+Last update: January 2022
 
 ====================================================================
 
-Current version of Isletlab has been fully tested in Ubuntu Linux 18.
+Current version of Isletlab has been fully tested in Ubuntu Linux 18, Windows 10 and macOS 10.15.7 (Catalina)
+Note that functional simulations require a CUDA capable device (NVIDIA). Since Apple computers do not use this kind of graphic cards, it is not possible to perform functional simulations in macOS.
 
 **Requirements:**
 
 - [ ] [Anaconda](https://anaconda.org/) (Python 3.8) 
-- [ ] GCC compiler
-- [ ] NVCC compiler ([CUDA toolkit](https://developer.nvidia.com/cuda-toolkit))
-- [ ] [CUDA capable NVIDIA GPU Device](https://developer.nvidia.com/cuda-gpus)
-
-
-
-====================================================================
-
-**Testing installation**
-
-Sample data is included in the repository to test IsletLab. 
-
-1. Click the "Load initial islet" button
-
-2. Select the "H51.txt" file containing the test data and click "Open".
-
-   If everything works as intended, a plot of the initial islet should be visible.
-
-3. Click the "Reconstruction settings" button.
-
-   - Change the number of threads to match the processor characteristics and click OK. 
-
-4. Click the "Reconstruct islet" button to open the "Reconstruction Log" window.
-
-5. Click the "Run" button. 
-
-   - Check that the IsletLab version appears at the "Reconstruction Log" window.
-   - Check that the number of overlapped cells in the initial islets is printed.
-   - For each iteration of the optimization algorithm the number of overlapped cells must be printed.
-   - Once the reconstruction is finished, the total "Computing time" is printed.
-
-6. Close the "Reconstruction Log " window.
-
-7. Click the "Cell-to-cell contacts" button.
-
-8. Click the "Build Network" button.
-
-9. Switch to the "Simulation" tab. (Only activated is a CUDA-capable NVIDIA video card is available).
-
-10. Configure the number of Blocks and Threads (depends on the NVIDIA card model).
-
-11. Click "Run Simulation" to open the "Simulation Log" window and click "Run". 
-
-12. Close the "Simulation Log" window once the calculation finishes.
-
-If all the steps were performed correctly, IsletLab was correctly installed.
-
-====================================================================
+- [ ] GCC compiler 
+- [ ] NVCC compiler ([CUDA toolkit](https://developer.nvidia.com/cuda-toolkit)) (for the functional simulations only)
+- [ ] [CUDA capable NVIDIA GPU Device](https://developer.nvidia.com/cuda-gpus) (for the functional simulations only)
 
 Currently I'm working on the detailed documentation. Please, if you are unable to run IsletLab do not hesitate to send me an email (<gjfelix2005@gmail.com>). 
 
