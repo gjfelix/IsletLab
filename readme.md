@@ -25,12 +25,15 @@ Website:<https://gjfelix.github.io>
 
 Email: gjfelix2005@gmail.com
 
-
-September 2021
+Last update: March 2022
 
 ====================================================================
 
-Current version of Isletlab has been fully tested in Ubuntu Linux 18.
+[IsletLab Documentation](https://github.com/gjfelix/IsletLab/wiki)
+
+====================================================================
+
+Current version of Isletlab has been fully tested in Ubuntu Linux 18, Windows 11 and MacOS Catalina
 
 **Requirements:**
 
@@ -84,7 +87,7 @@ If all the steps were performed correctly, IsletLab was correctly installed.
 
 ====================================================================
 
-Currently I'm working on the detailed documentation. Please, if you are unable to run IsletLab do not hesitate to send me an email (<gjfelix2005@gmail.com>). 
+Please, if you are unable to run IsletLab or you have any problem do not hesitate to send me an email (<gjfelix2005@gmail.com>). 
 
 In case you find a bug or want to contribute with an idea or request, please [create an issue](https://github.com/gjfelix/IsletLab/issues).
 
