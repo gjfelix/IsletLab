@@ -7,8 +7,6 @@
                                         (_) (_)  v1.0
  ```
 
-![IsletLab Interface](GUI_FullWindow.png)
-
 ### Isletlab Project
 
 This software is licensed under the GPL V3 Open Source Licence
