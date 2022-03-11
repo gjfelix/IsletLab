@@ -115,6 +115,7 @@ class Ui_MainWindow(object):
         self.nblocks = 30
         self.ncudathreads = 64
         self.maxVecinos = 10
+        self.cudacap = ""
 
         #self.message_obj = Message()
 
@@ -845,12 +846,23 @@ class Ui_MainWindow(object):
         self.ncudathreads_label.setObjectName("nthreads_label")
         self.formLayoutcuda.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.ncudathreads_label)
         self.ncudathreads_lineedit = QtWidgets.QLineEdit(self.formLayoutWidgetcuda)
-        self.ncudathreads_lineedit.setObjectName("timestep_lineedit")
+        self.ncudathreads_lineedit.setObjectName("cudathreads_lineedit")
         self.ncudathreads_lineedit.setText(str(self.ncudathreads))
         # para validacion de entradas solo numeros
         ncudathreads_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.ncudathreads_lineedit)
         self.ncudathreads_lineedit.setValidator(ncudathreads_validator)
         self.formLayoutcuda.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.ncudathreads_lineedit)
+
+        self.cudacap_label = QtWidgets.QLabel(self.formLayoutWidgetcuda)
+        self.cudacap_label.setObjectName("cudacap_label")
+        self.formLayoutcuda.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.cudacap_label)
+        self.cudacap_lineedit = QtWidgets.QLineEdit(self.formLayoutWidgetcuda)
+        self.cudacap_lineedit.setObjectName("cudacap_lineedit")
+        self.cudacap_lineedit.setText(str(self.cudacap))
+        # para validacion de entradas solo numeros
+        cudacap_validator = QtGui.QRegExpValidator(reg_ex_numeros, self.cudacap_lineedit)
+        self.cudacap_lineedit.setValidator(cudacap_validator)
+        self.formLayoutcuda.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.cudacap_lineedit)
 
         self.run_simulation_button = QtWidgets.QPushButton(self.simulation_tab)
         self.run_simulation_button.setGeometry(QtCore.QRect(10, 590, 321, 61))
@@ -909,7 +921,7 @@ class Ui_MainWindow(object):
         self.actionAbout.setObjectName("actionAbout")
         self.actionAbout.triggered.connect(self.about_isletlab)
         self.actionDocumentation = QtWidgets.QAction(MainWindow)
-        self.actionDocumentation.setObjectName("actionDocumentation")
+        #self.actionDocumentation.setObjectName("actionDocumentation")
         
         self.actionReconstruction = QtWidgets.QAction(MainWindow)
         self.actionReconstruction.setObjectName("actionReconstruction")
@@ -935,7 +947,7 @@ class Ui_MainWindow(object):
         #self.menuSettings.addAction(self.actionReconstruction)
         #self.menuSettings.addAction(self.actionSimulation)
         self.menuHelp.addAction(self.actionAbout)
-        self.menuHelp.addAction(self.actionDocumentation)
+        #self.menuHelp.addAction(self.actionDocumentation)
         self.menubar.addAction(self.menuFile.menuAction())
         #self.menubar.addAction(self.menuSettings.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
@@ -1014,14 +1026,14 @@ class Ui_MainWindow(object):
         self.total_iter_value.setText(_translate("MainWindow", "0"))
         self.acc_iter_value.setText(_translate("MainWindow", "0"))
         self.comp_time_value.setText(_translate("MainWindow", "0"))
-        self.fin_total_vol_label.setText(_translate("MainWindow", "Total cell volume"))
+        self.fin_total_vol_label.setText(_translate("MainWindow", "Total cell volume (\u03bcm\u00b3)"))
         self.fin_total_vol_value.setText(_translate("MainWindow", "0"))
         self.fin_total_vol_perc.setText(_translate("MainWindow", "0"))
-        self.fin_alpha_vol_label.setText(_translate("MainWindow", "\u03b1-cell volume"))
+        self.fin_alpha_vol_label.setText(_translate("MainWindow", "\u03b1-cell volume (\u03bcm\u00b3)"))
         self.fin_alpha_vol_value.setText(_translate("MainWindow", "0"))
         self.fin_alpha_vol_perc.setText(_translate("MainWindow", "0"))
-        self.fin_beta_vol_label.setText(_translate("MainWindow", "\u03b2-cell volume"))
-        self.fin_delta_vol_label.setText(_translate("MainWindow", "\u03b4-cell volume"))
+        self.fin_beta_vol_label.setText(_translate("MainWindow", "\u03b2-cell volume (\u03bcm\u00b3)"))
+        self.fin_delta_vol_label.setText(_translate("MainWindow", "\u03b4-cell volume (\u03bcm\u00b3)"))
         self.fin_beta_vol_value.setText(_translate("MainWindow", "0"))
         self.fin_delta_vol_value.setText(_translate("MainWindow", "0"))
         self.fin_beta_vol_perc.setText(_translate("MainWindow", "0"))
@@ -1078,13 +1090,13 @@ class Ui_MainWindow(object):
         #self.network_plots_groupbox.setTitle(_translate("MainWindow", "Network"))
         #self.network_metrics_plots_butthon.setText(_translate("MainWindow", "Metrics"))
         #self.tabWidget_settings.setTabText(self.tabWidget_settings.indexOf(self.tab_plots), _translate("MainWindow", "Graphs"))
-        self.intrinsicfreq_groupbox.setTitle(_translate("MainWindow", "Intrinsic frequency"))
+        self.intrinsicfreq_groupbox.setTitle(_translate("MainWindow", "Intrinsic frequency (Hz)"))
         self.intrinsicfreq_constant_radio.setText(_translate("MainWindow", "Constant"))
         self.intrinsicfreq_random_radio.setText(_translate("MainWindow", "Random"))
         self.intrinsicfreq_config_button.setText(_translate("MainWindow", "Configure"))
         #self.intrinsicfreq_file_radio.setText(_translate("MainWindow", "From file"))
         #self.intrinsicfreq_file_button.setText(_translate("MainWindow", "Open"))
-        self.intitialphase_groupbox.setTitle(_translate("MainWindow", "Initial phase"))
+        self.intitialphase_groupbox.setTitle(_translate("MainWindow", "Initial phase (rad)"))
         self.initialphase_constant_radio.setText(_translate("MainWindow", "Constant"))
         self.initialphase_random_radio.setText(_translate("MainWindow", "Random"))
         self.initialphase_config_button.setText(_translate("MainWindow", "Configure"))
@@ -1099,12 +1111,13 @@ class Ui_MainWindow(object):
         
 
         self.sim_settings_groupbox.setTitle(_translate("MainWindow", "Simulation settings"))
-        self.sim_total_time_label.setText(_translate("MainWindow", "Total time"))
-        self.sim_timestep_label.setText(_translate("MainWindow", "Time step"))
+        self.sim_total_time_label.setText(_translate("MainWindow", "Total time (s)"))
+        self.sim_timestep_label.setText(_translate("MainWindow", "Time step (s)"))
         self.save_mult_label.setText(_translate("MainWindow", "Save step"))
         self.cuda_settings_groupbox.setTitle(_translate("MainWindow", "CUDA settings"))
         self.nblocks_label.setText(_translate("MainWindow", "Blocks"))
         self.ncudathreads_label.setText(_translate("MainWindow", "Threads"))
+        self.cudacap_label.setText(_translate("MainWindow", "CUDA Capability"))
         self.run_simulation_button.setText(_translate("MainWindow", "Run Simulation"))
         self.tabWidget_settings.setTabText(self.tabWidget_settings.indexOf(self.simulation_tab), _translate("MainWindow", "Simulation"))
         self.tabWidget_Plots.setTabText(self.tabWidget_Plots.indexOf(self.initial_islet_plot_tab), _translate("MainWindow", "Initial Islet"))
@@ -1116,7 +1129,7 @@ class Ui_MainWindow(object):
         self.menuHelp.setTitle(_translate("MainWindow", "Help"))
         self.actionExport_data.setText(_translate("MainWindow", "Export Project"))
         self.actionAbout.setText(_translate("MainWindow", "About"))
-        self.actionDocumentation.setText(_translate("MainWindow", "Documentation"))
+        #self.actionDocumentation.setText(_translate("MainWindow", "Documentation"))
         #self.actionReconstruction.setText(_translate("MainWindow", "Reconstruction"))
         #self.actionContacts.setText(_translate("MainWindow", "Contacts"))
         self.actionLoad_data.setText(_translate("MainWindow", "Load Project"))
@@ -1141,17 +1154,23 @@ class Ui_MainWindow(object):
             if len(cfiles) != 0:
                 for file in cfiles:
                     cexecfiles.append(file[:-2])
-            filestoclean = txtfiles + datafiles + cudafiles + cudaexecfiles + cfiles + cexecfiles
+            exefiles = glob.glob(self.filespath+self.filemainname+'*.exe')
+            expfiles = glob.glob(self.filespath+self.filemainname+'*.exp')
+            libfiles = glob.glob(self.filespath+self.filemainname+'*.lib')
+            filestoclean = txtfiles + datafiles + cudafiles + cudaexecfiles + cfiles + cexecfiles + exefiles + expfiles + libfiles
             #print(filestoclean)
             #print(len(filestoclean))
             for file in filestoclean:
-                os.remove(file)
+                try:
+                    os.remove(file)
+                except:
+                    print("File: " + file +" was not created.")
         else:
             pass
             
 
     def about_isletlab(self):
-        QtWidgets.QMessageBox.about(None, "About IsletLab", "Version: 1.0 \nDeveloped by Gerardo J. Félix-Martínez \nContact: gjfelix2005@gmail.com")
+        QtWidgets.QMessageBox.about(None, "About IsletLab", "Version: 1.0 \nDeveloped by Gerardo J. Félix-Martínez \nContact: gjfelix2005@gmail.com \nDocumentation: github.com/gjfelix/Isletlab/wiki")
 
     def save_project(self):
 
@@ -1879,17 +1898,51 @@ class Ui_MainWindow(object):
 
         #time.sleep(1)
         
+        ind_gcc = 1
+        #try:
+        if sys_pf == 'darwin':
+            try:
+                subprocess.run(["gcc-10", "-v"])
+            except:
+                ind_gcc = 0
+                self.no_gcc()
+                self.reconstruction_status_label.setText("GCC-10 not found")
+                self.reconstruction_status_label.setStyleSheet("color: Red")
 
-        try:
-            if sys_pf == 'darwin':
-                subprocess.run(["gcc-10", self.current_islet_file[:-4] + "_opt.c" , "-o", self.current_islet_file[:-4] + "_opt.c"[:-2], "-lm", "-fopenmp"])
-            else:
-                subprocess.run(["gcc", self.current_islet_file[:-4] + "_opt.c" , "-o", self.current_islet_file[:-4] + "_opt.c"[:-2], "-lm", "-fopenmp"])
-            self.reconstruction_status_label.setText("Compilation success")
-            self.reconstruction_status_label.setStyleSheet("color: Green")
-        except:
-            self.reconstruction_status_label.setText("Compilation failed 1")
-            self.reconstruction_status_label.setStyleSheet("color: Red")
+        
+            if ind_gcc == 1:
+                try:
+                    subprocess.run(["gcc-10", self.current_islet_file[:-4] + "_opt.c" , "-o", self.current_islet_file[:-4] + "_opt.c"[:-2], "-lm", "-fopenmp"])
+                    self.reconstruction_status_label.setText("Compilation success")
+                    self.reconstruction_status_label.setStyleSheet("color: Green")
+                except:
+                    self.no_gcc()
+                    self.reconstruction_status_label.setText("GCC compilation failed")
+                    self.reconstruction_status_label.setStyleSheet("color: Red")
+
+        else:
+            try:
+                subprocess.run(["gcc", "-v"])
+            except:
+                ind_gcc = 0
+                self.no_gcc()
+                self.reconstruction_status_label.setText("GCC not found")
+                self.reconstruction_status_label.setStyleSheet("color: Red")
+            print(ind_gcc)
+                
+            if ind_gcc == 1:
+                try:
+                    subprocess.run(["gcc", self.current_islet_file[:-4] + "_opt.c" , "-o", self.current_islet_file[:-4] + "_opt.c"[:-2], "-lm", "-fopenmp"])
+                    self.reconstruction_status_label.setText("Compilation success")
+                    self.reconstruction_status_label.setStyleSheet("color: Green")
+                except:
+                    self.gcc_error()
+                    self.reconstruction_status_label.setText("GCC compilation failed")
+                    self.reconstruction_status_label.setText("Compilation failed")
+            
+        #except:
+        #    self.reconstruction_status_label.setText("Compilation failed")
+        #    self.reconstruction_status_label.setStyleSheet("color: Red")
 
         #time.sleep(1)
 
@@ -1907,41 +1960,43 @@ class Ui_MainWindow(object):
             #progressbar = ProgressBar(n, title = "Copying files...")
             #if progressbar.wasCanceled():
             #    break
-            self.reconstruction_status_label.setText("Optimization in progress")
-            self.reconstruction_status_label.setStyleSheet("color: Green")
-            #print(fout)
-            self.optstatus, computing_time = self.launch_opt_window(self.current_islet_file[:-4] + "_opt.c")
-            #print("Checo estatus: " + str(optstatus))
-            #t = threading.Thread(target=self.run_code, args=(fout,))
-            #t.start()
-            #while t.is_alive():
-            #    pass
-            if self.optstatus == 0:
-                self.reconstruction_status_label.setText("Reconstruction aborted")
-                self.reconstruction_status_label.setStyleSheet("color: Red")
-            elif self.optstatus == 2:
-                self.comp_time_value.setText(str(computing_time[0])+" h "+str(computing_time[1]) + " m " + str(computing_time[2]) + " s")
-                self.reconstruction_status_label.setText("Optimization completed")
+            if ind_gcc == 1:
+                self.reconstruction_status_label.setText("Optimization in progress")
                 self.reconstruction_status_label.setStyleSheet("color: Green")
-                self.reconstruct_button.setEnabled(False)
-                self.contacts_button.setEnabled(True)
-                self.contacts_status_label.setEnabled(True)
+                #print(fout)
+                self.optstatus, computing_time = self.launch_opt_window(self.current_islet_file[:-4] + "_opt.c")
+                #print("Checo estatus: " + str(optstatus))
+                #t = threading.Thread(target=self.run_code, args=(fout,))
+                #t.start()
+                #while t.is_alive():
+                #    pass
+                if self.optstatus == 0:
+                    self.reconstruction_status_label.setText("Reconstruction aborted")
+                    self.reconstruction_status_label.setStyleSheet("color: Red")
+                elif self.optstatus == 2:
+                    self.comp_time_value.setText(str(computing_time[0])+" h "+str(computing_time[1]) + " m " + str(computing_time[2]) + " s")
+                    self.reconstruction_status_label.setText("Optimization completed")
+                    self.reconstruction_status_label.setStyleSheet("color: Green")
+                    self.reconstruct_button.setEnabled(False)
+                    self.contacts_button.setEnabled(True)
+                    self.contacts_status_label.setEnabled(True)
 
+                    
+                    
+                    self.tabWidget_islet_stats.setTabEnabled(1, True)
+                    self.tabWidget_islet_stats.setCurrentIndex(1)
                 
-                
-                self.tabWidget_islet_stats.setTabEnabled(1, True)
-                self.tabWidget_islet_stats.setCurrentIndex(1)
-            
-                self.tabWidget_Plots.setTabEnabled(1, True)
-                self.tabWidget_Plots.setCurrentIndex(1)
+                    self.tabWidget_Plots.setTabEnabled(1, True)
+                    self.tabWidget_Plots.setCurrentIndex(1)
 
-                self.final_islet_data = np.loadtxt(self.current_islet_file[:-4]+'_reconstructed.txt')
-                self.post_processed_data = self.postprocessIslet(self.final_islet_data)
-                self.plot_reconstructed_islet()
-                self.reconstructed_islet_stats(self.post_processed_data)
-                self.processar_output_stats()
-                self.plotOptConvergence()
-                self.actionExport_data.setEnabled(True)
+                    self.final_islet_data = np.loadtxt(self.current_islet_file[:-4]+'_reconstructed.txt')
+                    self.post_processed_data = self.postprocessIslet(self.final_islet_data)
+                    self.plot_reconstructed_islet()
+                    self.reconstructed_islet_stats(self.post_processed_data)
+                    self.processar_output_stats()
+                    self.plotOptConvergence()
+                    self.actionExport_data.setEnabled(True)
+
 
                 
         except Exception as e:
@@ -2356,7 +2411,17 @@ class Ui_MainWindow(object):
         #self.contacts_plot_button.setEnabled(False)
 
     def no_cuda(self):
-        QtWidgets.QMessageBox.about(None, "CUDA was not found", "A CUDA capable GPU was not found. \nFunctional simulations will not be performed.")
+        QtWidgets.QMessageBox.about(None, "CUDA Error", "NVCC compiler was not found \nFunctional simulations will not be performed.")
+
+    def cuda_error(self):
+        QtWidgets.QMessageBox.about(None, "CUDA Error", "Error while executing the simulation. \nFunctional simulations will not be performed.")
+
+    def no_gcc(self):
+        QtWidgets.QMessageBox.about(None, "GCC Error", "GCC compiler was not found \nPlease check your installation")
+
+    def gcc_error(self):
+        QtWidgets.QMessageBox.about(None, "GCC Error", "Error while executing the reconstruction")
+
 
     def plot_contacts(self, isletdata):
         layout = QtWidgets.QVBoxLayout()
@@ -2671,7 +2736,7 @@ class Ui_MainWindow(object):
     def open_const_freq_settings(self):
         const_freq_dialog = QtWidgets.QDialog()
         ui = Ui_const_freq_dialog()
-        ui.setupUi(const_freq_dialog, self.constfreq, "Constant frequency")
+        ui.setupUi(const_freq_dialog, self.constfreq, "Constant frequency (Hz)")
         const_freq_dialog.exec_()
         #ui.const_freq_value.setText(str(self.constfreq))
         
@@ -2684,7 +2749,7 @@ class Ui_MainWindow(object):
     def open_const_phase_settings(self):
         initial_phase_dialog = QtWidgets.QDialog()
         ui = Ui_const_freq_dialog()
-        ui.setupUi(initial_phase_dialog, self.constphase, "Constant phase")
+        ui.setupUi(initial_phase_dialog, self.constphase, "Constant phase (rad)")
         initial_phase_dialog.exec_()
         #ui.const_freq_value.setText(str(self.constphase))
         # preventing empty form
@@ -2697,7 +2762,7 @@ class Ui_MainWindow(object):
     def open_rand_freq_settings(self):
         random_freq_dialog = QtWidgets.QDialog()
         ui = Ui_random_freq_dialog()
-        ui.setupUi(random_freq_dialog, [self.meanfreq, self.sdfreq])
+        ui.setupUi(random_freq_dialog, [self.meanfreq, self.sdfreq], "Hz")
         random_freq_dialog.exec_()
         if ui.mean_value.text() == "":
             ui.mean_value.setText(str(np.round(self.meanfreq))) 
@@ -2712,7 +2777,7 @@ class Ui_MainWindow(object):
     def open_rand_phase_settings(self):
         random_phase_dialog = QtWidgets.QDialog()
         ui = Ui_random_freq_dialog()
-        ui.setupUi(random_phase_dialog, [self.meanphase, self.sdphase])
+        ui.setupUi(random_phase_dialog, [self.meanphase, self.sdphase], "rad")
         random_phase_dialog.exec_()
         if ui.mean_value.text() == "":
             ui.mean_value.setText(str(self.meanphase)) 
@@ -2855,8 +2920,11 @@ class Ui_MainWindow(object):
 
     def compile_cuda_code(self):
         try:
-            subprocess.run(["nvcc", self.current_islet_file[:-4] + "_kuramoto_sim.cu" , "-o", self.current_islet_file[:-4] + "_kuramoto_sim"])
-            #print("compilation success")
+            if self.cudacap_lineedit.text()=="":
+                subprocess.run(["nvcc", self.current_islet_file[:-4] + "_kuramoto_sim.cu" , "-o", self.current_islet_file[:-4] + "_kuramoto_sim"])
+	         #print("compilation success")
+            else:
+                subprocess.run(["nvcc", self.current_islet_file[:-4] + "_kuramoto_sim.cu" , "-o", self.current_islet_file[:-4] + "_kuramoto_sim", "-arch=sm_"+self.cudacap_lineedit.text()])
         except:
             #print("CUDA compilation failed")
             self.sim_status_label.setText("Error compiling cuda code")
@@ -2880,24 +2948,36 @@ class Ui_MainWindow(object):
         self.generate_cuda_code(ncells)
         #print("Cuda code generado")
 
-        self.sim_status_label.setText("Compiling CUDA code")
-        self.sim_status_label.setStyleSheet("color: Green")
-        self.compile_cuda_code()
         #print("Cuda code compilado")
 
         #print(self.current_islet_file[:-4]+"_kuramoto_sim")
+        ind_nvcc = 1
         try:
-            self.sim_status_label.setText("Simulating...")
-            self.sim_status_label.setStyleSheet("color: Green")
-            self.launch_cudasim_window(self.current_islet_file[:-4] + "_kuramoto_sim..")
-            self.sim_status_label.setText("Simulation completed")
+            subprocess.run(["nvcc", "--version"])
         except:
+            ind_nvcc = 0
             self.no_cuda()
             self.sim_status_label.setText("Error executing cuda simulation")
             self.sim_status_label.setStyleSheet("color:Red")
-    
+            
+        if ind_nvcc == 1:
+            self.sim_status_label.setText("Compiling CUDA code")
+            self.sim_status_label.setStyleSheet("color: Green")
+            self.compile_cuda_code()
+
+            try:
+                self.sim_status_label.setText("Simulating...")
+                self.sim_status_label.setStyleSheet("color: Green")
+                self.launch_cudasim_window(self.current_islet_file[:-4] + "_kuramoto_sim..")
+                self.sim_status_label.setText("Simulation completed")
+                self.plot_kuramoto_results()
+            except:
+                self.cuda_error()
+                self.sim_status_label.setText("Error executing cuda simulation")
+                self.sim_status_label.setStyleSheet("color:Red")
         
-        self.plot_kuramoto_results()
+        
+        
         
         
 
@@ -3038,7 +3118,10 @@ class Ui_OptLog_Dialog(object):
         self.opt_start_time = datetime.now()
         #print(self.opt_start_time)
         self.runopt_pushButton.setEnabled(False)
-        self.process.start(fout[:-2])
+        if sys_pf[:3] == "win":
+            self.process.start(fout[:-2]+".exe")
+        else:
+            self.process.start(fout[:-2])
         #print("Proceso iniciado")
         self.optstatus = 1
         self.abortopt_pushbutton.setEnabled(True)
@@ -3246,7 +3329,7 @@ class Ui_const_freq_dialog(object):
 
 
 class Ui_random_freq_dialog(object):
-    def setupUi(self, random_freq_dialog, randompars):
+    def setupUi(self, random_freq_dialog, randompars, units):
 
         self.mean = randompars[0]
         self.sd = randompars[1]
@@ -3289,16 +3372,16 @@ class Ui_random_freq_dialog(object):
         self.sd_value.setValidator(sd_validator)
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.sd_value)
 
-        self.retranslateUi(random_freq_dialog)
+        self.retranslateUi(random_freq_dialog, units)
         self.buttonBox.accepted.connect(random_freq_dialog.accept)
         self.buttonBox.rejected.connect(random_freq_dialog.reject)
         QtCore.QMetaObject.connectSlotsByName(random_freq_dialog)
 
-    def retranslateUi(self, random_freq_dialog):
+    def retranslateUi(self, random_freq_dialog, units):
         _translate = QtCore.QCoreApplication.translate
         random_freq_dialog.setWindowTitle(_translate("random_freq_dialog", "Random frequency"))
-        self.mean_label.setText(_translate("random_freq_dialog", "Mean"))
-        self.sd_label.setText(_translate("random_freq_dialog", "SD"))
+        self.mean_label.setText(_translate("random_freq_dialog", "Mean ("+units+")"))
+        self.sd_label.setText(_translate("random_freq_dialog", "SD ("+units+")"))
 
 class Ui_interaction_strength_Dialog(object):
     def setupUi(self, Dialog, int_strength_pars):
@@ -3313,7 +3396,7 @@ class Ui_interaction_strength_Dialog(object):
         self.Kdd = int_strength_pars[8]
 
         # para validacion de entradas solo numeros
-        reg_ex_numeros = QtCore.QRegExp("[+]?[0-9]*\.?[0-9]+")
+        reg_ex_numeros = QtCore.QRegExp("[+-]?[0-9]*\.?[0-9]+")
 
         Dialog.setObjectName("Dialog")
         Dialog.resize(232, 340)
@@ -3429,17 +3512,17 @@ class Ui_interaction_strength_Dialog(object):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Interaction strength"))
         #self.Kaa_value.setText(_translate("Dialog", str(self.Kaa)))
-        self.Kba_label.setText(_translate("Dialog", "Kba"))
+        self.Kba_label.setText(_translate("Dialog", "K\u03b2\u03b2"))
         #self.Kba_value.setText(_translate("Dialog", str(self.Kba)))
-        self.Kaa_label.setText(_translate("Dialog", "Kaa"))
+        self.Kaa_label.setText(_translate("Dialog", "K\u03b1\u03b1"))
         #self.Kda_value.setText(_translate("Dialog", str(self.Kda)))
-        self.Kda_label.setText(_translate("Dialog", "Kda"))
-        self.Kab_label.setText(_translate("Dialog", "Kab"))
-        self.Kbb_label.setText(_translate("Dialog", "Kbb"))
-        self.Kdb_label.setText(_translate("Dialog", "Kdb"))
-        self.Kad_label.setText(_translate("Dialog", "Kad"))
-        self.Kbd_label.setText(_translate("Dialog", "Kbd"))
-        self.Kdd_label.setText(_translate("Dialog", "Kdd"))
+        self.Kda_label.setText(_translate("Dialog", "K\u03b4\u03b1"))
+        self.Kab_label.setText(_translate("Dialog", "K\u03b1\u03b2"))
+        self.Kbb_label.setText(_translate("Dialog", "K\u03b2\u03b2"))
+        self.Kdb_label.setText(_translate("Dialog", "K\u03b4\u03b2"))
+        self.Kad_label.setText(_translate("Dialog", "K\u03b1\u03b4"))
+        self.Kbd_label.setText(_translate("Dialog", "K\u03b2\u03b4"))
+        self.Kdd_label.setText(_translate("Dialog", "K\u03b4\u03b4"))
         #self.Kab_value.setText(_translate("Dialog", str(self.Kab)))
         #self.Kbb_value.setText(_translate("Dialog", str(self.Kbb)))
         #self.Kdb_value.setText(_translate("Dialog", str(self.Kdb)))

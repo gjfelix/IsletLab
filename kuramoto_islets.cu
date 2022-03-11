@@ -29,7 +29,7 @@ double *Angulos_Host;
 // Parametros CUDA
 const int numBlocks = 30;
 const int threadsPerBlock = 64;
-__const__ int NUMHILOS = numBlocks * threadsPerBlock;
+__constant__ int NUMHILOS = numBlocks * threadsPerBlock;
 
 struct contactos{
     int id_vecino; // Identificador de vecino en el islote
